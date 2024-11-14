@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { RiKakaoTalkFill } from "react-icons/ri";
 import { FaGoogle } from "react-icons/fa";
-
 import { useEffect } from "react";
 import { initializeKakao } from "../kakao";
 import { getAuth, signInWithPopup, signOut } from "firebase/auth";

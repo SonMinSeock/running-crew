@@ -7,7 +7,7 @@ declare global {
 
 export {};
 
-const KAKAO_APP_KEY = "201968d1df739b6d3654e6ccc7fe941a";
+const KAKAO_APP_KEY = import.meta.env.VITE_APP_KAKAO_APP_KEY;
 
 export const initializeKakao = (): void => {
   if (!window.Kakao) {
