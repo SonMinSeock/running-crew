@@ -1,5 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth"; // Firebase 인증 관련 함수
 import styled, { keyframes } from "styled-components";
+import { userActions } from "../store/slices/user-slice";
+import { auth } from "../firebase";
+import { RootState } from "../store";
 
 // 슬라이드 업 애니메이션 정의
 const slideUp = keyframes`
@@ -52,18 +58,10 @@ const RunningPostList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 300px; // 기본 최대 높이
-  overflow-y: auto; // 초과 시 스크롤 활성화
-  padding-right: 10px; // 스크롤 여백 확보
-
-  // 반응형 설정
-  @media (max-width: 768px) {
-    max-height: 200px; // 태블릿 크기에서 높이 조정
-  }
-
-  @media (max-width: 480px) {
-    max-height: 150px; // 모바일 크기에서 높이 조정
-  }
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 10px;
+  padding-bottom: 80px; /* NavBar 높이만큼 여백 추가 */
 `;
 
 const RunningPost = styled.div`
@@ -75,7 +73,7 @@ const RunningPost = styled.div`
     width: 50px;
     height: 50px;
     border-radius: 8px;
-    background-color: #ddd; // 임시 배경 (이미지 없는 경우 대비)
+    background-color: #ddd;
     overflow: hidden;
     & img {
       width: 100%;
@@ -105,6 +103,33 @@ const RunningPost = styled.div`
   }
 `;
 
+const LogoutButton = styled.button`
+  background-color: #ff4b5c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #e43f4f;
+  }
+`;
+
+// 로그아웃 메시지 스타일
+const LogoutMessage = styled.div`
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 5px;
+  margin-top: 20px;
+`;
+
 const TOP_10_RUNNING_PLACE = [
   { text: "김포 한강공원", rank: 1 },
   { text: "올림픽 공원", rank: 2 },
@@ -122,7 +147,7 @@ const RUNNING_CREW_POSTS = [
   {
     username: "민석",
     text: "올림픽 공원에서 러닝 하실분~",
-    profileUrl: null, // 이미지가 없을 때 기본 회색 배경
+    profileUrl: null,
     endDate: "2024.11.15",
   },
   {
@@ -150,9 +175,37 @@ const RUNNING_CREW_POSTS = [
     profileUrl: null,
     endDate: "2024.11.20",
   },
+  {
+    username: "유진",
+    text: "송도 센트럴파크 러닝 같이해요~",
+    profileUrl: null,
+    endDate: "2024.11.20",
+  },
+  {
+    username: "유진",
+    text: "송도 센트럴파크 러닝 같이해요~",
+    profileUrl: null,
+    endDate: "2024.11.20",
+  },
+  {
+    username: "유진",
+    text: "송도 센트럴파크 러닝 같이해요~",
+    profileUrl: null,
+    endDate: "2024.11.20",
+  },
+  {
+    username: "유진",
+    text: "송도 센트럴파크 러닝 같이해요~",
+    profileUrl: null,
+    endDate: "2024.11.20",
+  },
 ];
 
 function Home() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.userSlice); // 리덕스에서 로그인 상태 가져오기
+  const [logoutMessage, setLogoutMessage] = useState("");
   const [currentList, setCurrentList] = useState(TOP_10_RUNNING_PLACE.slice(0, 5)); // 초반 1~5위 표시
   const [isFirstGroup, setIsFirstGroup] = useState(true); // 현재 표시 중인 그룹 트래킹
 
@@ -169,9 +222,64 @@ function Home() {
     return () => clearInterval(interval); // 컴포넌트 언마운트 시 interval 정리
   }, [isFirstGroup]);
 
+  useEffect(() => {
+    if (!user) {
+      onAuthStateChanged(auth, (firebaseUser) => {
+        if (firebaseUser) {
+          // 로그인된 경우, Firebase의 사용자 정보를 리덕스 상태에 저장
+          dispatch(
+            userActions.setUser({
+              userId: firebaseUser.uid,
+              userName: firebaseUser.displayName || "",
+              photoUrl: firebaseUser.photoURL || "",
+              provider: "google",
+            })
+          );
+        } else {
+          // 로그아웃된 경우, 리덕스 상태 초기화
+          dispatch(userActions.clearUser());
+        }
+      });
+    }
+  }, [dispatch]);
+
+  const handleLogout = () => {
+    if (user.provider === "google") {
+      const auth = getAuth(); // Firebase 인증 객체 가져오기
+      signOut(auth); // Firebase 로그아웃
+      dispatch(userActions.clearUser()); // 리덕스 상태 초기화
+    } else {
+      if (!window.Kakao.Auth.getAccessToken()) {
+        console.log("로그인 상태가 아닙니다.");
+        return;
+      }
+      window.Kakao.Auth.logout(() => {
+        dispatch(userActions.clearUser());
+      });
+    }
+
+    setLogoutMessage("로그아웃되었습니다.");
+  };
+
+  const handleRunningPostClick = () => {
+    if (!user.userId) {
+      navigate("/login"); // 로그인 안 되어 있으면 로그인 페이지로 리다이렉트
+    } else {
+      console.log("RunningPost 클릭됨");
+    }
+  };
+
   return (
     <>
       <Section>
+        <>
+          {user.userId && (
+            <>
+              <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+              {logoutMessage && <LogoutMessage>{logoutMessage}</LogoutMessage>}
+            </>
+          )}
+        </>
         <Title>Top 10 러닝 장소</Title>
         <RankContainer>
           <RankList key={isFirstGroup ? "group1" : "group2"}>
@@ -183,6 +291,7 @@ function Home() {
           </RankList>
         </RankContainer>
       </Section>
+
       <Section>
         <Title>같이 러닝 해요</Title>
         {RUNNING_CREW_POSTS.length === 0 ? (
@@ -190,7 +299,7 @@ function Home() {
         ) : (
           <RunningPostList>
             {RUNNING_CREW_POSTS.map((post, index) => (
-              <RunningPost key={index}>
+              <RunningPost key={index} onClick={handleRunningPostClick}>
                 <div
                   className="first-column"
                   style={{

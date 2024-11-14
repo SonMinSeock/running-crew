@@ -2,11 +2,14 @@
 import { RiKakaoTalkFill } from "react-icons/ri";
 import { FaGoogle } from "react-icons/fa";
 import { useEffect } from "react";
-import { initializeKakao } from "../kakao";
-import { getAuth, signInWithPopup, signOut } from "firebase/auth";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 import logo from "../../public/logo.png";
 import styled from "styled-components";
+import { userActions } from "../store/slices/user-slice";
+import { initializeKakao } from "../kakao";
 
 const Header = styled.header`
   display: flex;
@@ -109,7 +112,11 @@ const LoginBtn = styled.button`
 `;
 
 function Login() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   useEffect(() => {
+    // 카카오는 별도로 initializeKakao()가 필요할 수 있음
     initializeKakao();
   }, []);
 
@@ -126,12 +133,23 @@ function Login() {
         // 사용자 정보 요청
         window.Kakao.API.request({
           url: "/v2/user/me",
-          success: (response: any) => {
+          success: async (response: any) => {
             const { id, kakao_account } = response;
             const nickname = kakao_account.profile.nickname;
             const profileImageUrl = kakao_account.profile.profile_image_url;
 
-            console.log(id, nickname, profileImageUrl);
+            // 리덕스 상태에 저장
+            dispatch(
+              userActions.setUser({
+                userId: String(id),
+                userName: nickname,
+                photoUrl: profileImageUrl,
+                provider: "kakao",
+              })
+            );
+
+            // 홈 페이지로 리다이렉트
+            navigate("/");
           },
           fail: (error: any) => {
             console.error("사용자 정보 요청 실패:", error);
@@ -148,37 +166,23 @@ function Login() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      console.log(user);
+
+      // 리덕스 상태에 저장
+      dispatch(
+        userActions.setUser({
+          userId: user.uid,
+          userName: user.displayName || "",
+          photoUrl: user.photoURL || "",
+          provider: "google",
+        })
+      );
+
+      // 홈 페이지로 리다이렉트
+      navigate("/");
     } catch (error) {
       console.error("구글 로그인 에러:", error);
     }
   };
-
-  /*
-  const handleKakaoLogout = () => {
-    if (!window.Kakao.Auth.getAccessToken()) {
-      console.log("로그인 상태가 아닙니다.");
-      return;
-    }
-    window.Kakao.Auth.logout(() => {
-      console.log("카카오 로그아웃 성공");
-      // 로그아웃 후 상태 초기화
-      //   setUserInfo(null);
-    });
-  };
-    */
-  /*
-  const handleGoogleLogout = () => {
-    const auth = getAuth();
-    signOut(auth)
-      .then(() => {
-        console.log("로그아웃 성공");
-      })
-      .catch((error) => {
-        console.log("로그아웃 실패 ", error);
-      });
-  };
-  */
 
   return (
     <>

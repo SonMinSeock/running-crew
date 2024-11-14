@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
-
+import { getAuth, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_APP_API_KEY,
   authDomain: import.meta.env.VITE_APP_AUTHDOMAIN,
@@ -15,3 +15,10 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const observeAuthState = (callback: (user: any) => void) => {
+  onAuthStateChanged(auth, callback);
+};
+
+export const db = getFirestore();

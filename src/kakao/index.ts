@@ -19,3 +19,12 @@ export const initializeKakao = (): void => {
     window.Kakao.init(KAKAO_APP_KEY);
   }
 };
+
+/*
+ 유저 로그인 -> 카키오 | 구글 -> 유저 데이터 -> { userId, userName, photoUrl }
+*/
+
+/*
+  구글 -> uid를 userId, displayName을 userName, photoUrl
+  카카오 -> id를 userId, nickname을 userName, profile_image_url을 photoUrl
+*/
