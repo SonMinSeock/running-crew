@@ -3,6 +3,8 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import { createGlobalStyle } from "styled-components";
 import reset from "styled-reset";
+import LoginLayout from "./components/LoginLayout";
+import Login from "./pages/Login";
 
 const routes = [
   {
@@ -12,6 +14,16 @@ const routes = [
       {
         index: true,
         element: <Home />,
+      },
+    ],
+  },
+  {
+    path: "/login",
+    element: <LoginLayout />,
+    children: [
+      {
+        index: true,
+        element: <Login />,
       },
     ],
   },
