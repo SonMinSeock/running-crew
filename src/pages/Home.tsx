@@ -17,6 +17,24 @@ const slideUp = keyframes`
   }
 `;
 
+const Hader = styled.header`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+`;
+
+const LogInOutBtn = styled.button`
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  &:hover {
+    border-bottom: 1px solid black;
+  }
+  margin-right: 10px;
+`;
+
 const Section = styled.section`
   margin: 0 20px;
   margin-bottom: 45px;
@@ -103,33 +121,6 @@ const RunningPost = styled.div`
   }
 `;
 
-const LogoutButton = styled.button`
-  background-color: #ff4b5c;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #e43f4f;
-  }
-`;
-
-// 로그아웃 메시지 스타일
-const LogoutMessage = styled.div`
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 15px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 5px;
-  margin-top: 20px;
-`;
-
 const TOP_10_RUNNING_PLACE = [
   { text: "김포 한강공원", rank: 1 },
   { text: "올림픽 공원", rank: 2 },
@@ -205,7 +196,6 @@ function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.userSlice); // 리덕스에서 로그인 상태 가져오기
-  const [logoutMessage, setLogoutMessage] = useState("");
   const [currentList, setCurrentList] = useState(TOP_10_RUNNING_PLACE.slice(0, 5)); // 초반 1~5위 표시
   const [isFirstGroup, setIsFirstGroup] = useState(true); // 현재 표시 중인 그룹 트래킹
 
@@ -258,7 +248,7 @@ function Home() {
       });
     }
 
-    setLogoutMessage("로그아웃되었습니다.");
+    alert("로그아웃되었습니다.");
   };
 
   const handleRunningPostClick = () => {
@@ -269,17 +259,19 @@ function Home() {
     }
   };
 
+  const handleNavigate = () => {
+    navigate("/login");
+  };
   return (
     <>
+      <Hader>
+        {user.userId ? (
+          <LogInOutBtn onClick={handleLogout}>로그아웃</LogInOutBtn>
+        ) : (
+          <LogInOutBtn onClick={handleNavigate}>로그인</LogInOutBtn>
+        )}
+      </Hader>
       <Section>
-        <>
-          {user.userId && (
-            <>
-              <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
-              {logoutMessage && <LogoutMessage>{logoutMessage}</LogoutMessage>}
-            </>
-          )}
-        </>
         <Title>Top 10 러닝 장소</Title>
         <RankContainer>
           <RankList key={isFirstGroup ? "group1" : "group2"}>
