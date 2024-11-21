@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { IoHomeSharp, IoAdd } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
@@ -34,13 +34,17 @@ const NavBar = styled.footer`
 `;
 
 function Layout() {
+  const navigate = useNavigate();
+  const handleRedirect = (path: string) => {
+    navigate(path);
+  };
   return (
     <>
       <Container>
         <Outlet />
         <NavBar>
           <IoAdd />
-          <IoHomeSharp />
+          <IoHomeSharp onClick={() => handleRedirect("/")} />
           <CgProfile />
         </NavBar>
       </Container>

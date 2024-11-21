@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth"; // Firebase 인증 관련 함수
 import styled, { keyframes } from "styled-components";
-import { userActions } from "../store/slices/user-slice";
-import { auth } from "../firebase";
-import { RootState } from "../store";
+import { userActions } from "../../store/slices/user-slice";
+import { auth } from "../../firebase";
+import { RootState } from "../../store";
 
 // 슬라이드 업 애니메이션 정의
 const slideUp = keyframes`
@@ -136,12 +136,14 @@ const TOP_10_RUNNING_PLACE = [
 
 const RUNNING_CREW_POSTS = [
   {
+    id: 1,
     username: "민석",
     text: "올림픽 공원에서 러닝 하실분~",
     profileUrl: null,
     endDate: "2024.11.15",
   },
   {
+    id: 2,
     username: "지수",
     text: "한강공원에서 러닝 크루 모집합니다!",
     profileUrl:
@@ -149,42 +151,49 @@ const RUNNING_CREW_POSTS = [
     endDate: "2024.11.18",
   },
   {
+    id: 3,
     username: "유진",
     text: "송도 센트럴파크 러닝 같이해요~",
     profileUrl: null,
     endDate: "2024.11.20",
   },
   {
+    id: 4,
     username: "유진",
     text: "송도 센트럴파크 러닝 같이해요~",
     profileUrl: null,
     endDate: "2024.11.20",
   },
   {
+    id: 5,
     username: "유진",
     text: "송도 센트럴파크 러닝 같이해요~",
     profileUrl: null,
     endDate: "2024.11.20",
   },
   {
+    id: 6,
     username: "유진",
     text: "송도 센트럴파크 러닝 같이해요~",
     profileUrl: null,
     endDate: "2024.11.20",
   },
   {
+    id: 7,
     username: "유진",
     text: "송도 센트럴파크 러닝 같이해요~",
     profileUrl: null,
     endDate: "2024.11.20",
   },
   {
+    id: 8,
     username: "유진",
     text: "송도 센트럴파크 러닝 같이해요~",
     profileUrl: null,
     endDate: "2024.11.20",
   },
   {
+    id: 9,
     username: "유진",
     text: "송도 센트럴파크 러닝 같이해요~",
     profileUrl: null,
@@ -251,11 +260,11 @@ function Home() {
     alert("로그아웃되었습니다.");
   };
 
-  const handleRunningPostClick = () => {
+  const handleRunningPostClick = (postId: number) => {
     if (!user.userId) {
       navigate("/login"); // 로그인 안 되어 있으면 로그인 페이지로 리다이렉트
     } else {
-      console.log("RunningPost 클릭됨");
+      navigate(`/post/${postId}`);
     }
   };
 
@@ -291,7 +300,7 @@ function Home() {
         ) : (
           <RunningPostList>
             {RUNNING_CREW_POSTS.map((post, index) => (
-              <RunningPost key={index} onClick={handleRunningPostClick}>
+              <RunningPost key={index} onClick={() => handleRunningPostClick(post.id)}>
                 <div
                   className="first-column"
                   style={{
