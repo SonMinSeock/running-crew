@@ -1,3 +1,4 @@
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 
 const Post = styled.div`
@@ -38,7 +39,29 @@ const PostDate = styled.span`
   color: #bdbdbd;
 `;
 
+const ButtonContainer = styled.section`
+  display: flex;
+`;
+
+const Btn = styled.button`
+  background-color: #cffd4f;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  width: 80px;
+  padding: 8px 0;
+  cursor: pointer;
+`;
+
 function PostDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const handlerRedirect = () => {
+    navigate(`/post/${id}/update`);
+  };
+
+  const isOwner = true;
   return (
     <>
       <Post>
@@ -53,6 +76,9 @@ function PostDetail() {
           모집글.....러닝 모집글.....러닝 모집글.....러닝 모집글.....러닝 모집글.....러닝 모집글.....러닝 모집글.....
         </PostText>
         <PostDate>2024.11.21.목</PostDate>
+        <ButtonContainer>
+          {isOwner ? <Btn onClick={handlerRedirect}>수정 하기</Btn> : <Btn>참여 하기</Btn>}
+        </ButtonContainer>
       </Post>
     </>
   );

@@ -43,7 +43,7 @@ function Layout() {
       <Container>
         <Outlet />
         <NavBar>
-          <IoAdd />
+          <IoAdd onClick={() => handleRedirect("/post/create")} />
           <IoHomeSharp onClick={() => handleRedirect("/")} />
           <CgProfile />
         </NavBar>
