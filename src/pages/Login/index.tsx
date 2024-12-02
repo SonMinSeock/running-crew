@@ -5,11 +5,11 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../firebase";
-import logo from "../../public/logo.png";
+import { auth, googleProvider } from "../../firebase";
+import logo from "../../../public/logo.png";
 import styled from "styled-components";
-import { userActions } from "../store/slices/user-slice";
-import { initializeKakao } from "../kakao";
+import { userActions } from "../../store/slices/user-slice";
+import { initializeKakao } from "../../kakao";
 
 const Header = styled.header`
   display: flex;

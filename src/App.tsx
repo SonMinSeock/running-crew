@@ -5,6 +5,9 @@ import { createGlobalStyle } from "styled-components";
 import reset from "styled-reset";
 import LoginLayout from "./components/LoginLayout";
 import Login from "./pages/Login";
+import PostDetail from "./pages/PostDetail";
+import PostCreate from "./pages/PostCreate";
+import PostUpdate from "./pages/PostUpdate";
 
 const routes = [
   {
@@ -14,6 +17,18 @@ const routes = [
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path: "post/:id",
+        element: <PostDetail />,
+      },
+      {
+        path: "post/:id/update",
+        element: <PostUpdate />,
+      },
+      {
+        path: "post/create",
+        element: <PostCreate />,
       },
     ],
   },
