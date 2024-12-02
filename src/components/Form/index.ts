@@ -3,7 +3,6 @@ import styled from "styled-components";
 export const Form = styled.form`
   display: flex;
   flex-direction: column;
-  height: 100%;
   padding: 0px 10px;
 `;
 
@@ -52,7 +51,7 @@ export const AttatchFileSection = styled.section`
   justify-content: center;
   align-items: center;
   height: 289px;
-  border: 1px dashed #979797;
+  border: 2px dashed #979797;
   gap: 20px;
   margin: 20px 0;
   & svg {
@@ -60,6 +59,14 @@ export const AttatchFileSection = styled.section`
   }
   background-color: #f6f6f6;
   cursor: pointer;
+  &.isDragActive {
+    background-color: #f0f8ff;
+    border: 2px dashed #00f;
+  }
+  &:hover {
+    background-color: #f0f8ff;
+    border: 2px dashed #00f;
+  }
 `;
 
 export const Span = styled.span``;
@@ -81,4 +88,53 @@ export const SubmitBtn = styled.button`
   }
   border-radius: 10px;
   font-size: 18px;
+`;
+
+export const PreviewContainer = styled.section`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0px;
+`;
+
+export const PreviewBox = styled.div`
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+`;
+
+export const PreviewImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+export const PreviewText = styled.span`
+  display: block;
+  text-align: center;
+  padding: 10px;
+  font-size: 12px;
+  color: #555;
+`;
+
+export const RemoveButton = styled.button`
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #ff4d4f;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 12px;
 `;
