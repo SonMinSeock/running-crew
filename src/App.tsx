@@ -20,11 +20,16 @@ const routes = [
       },
       {
         path: "post/:id",
-        element: <PostDetail />,
-      },
-      {
-        path: "post/:id/update",
-        element: <PostUpdate />,
+        children: [
+          {
+            index: true,
+            element: <PostDetail />,
+          },
+          {
+            path: "update",
+            element: <PostUpdate />,
+          },
+        ],
       },
       {
         path: "post/create",
