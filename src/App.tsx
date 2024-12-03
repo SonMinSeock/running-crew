@@ -8,6 +8,9 @@ import Login from "./pages/Login";
 import PostDetail from "./pages/PostDetail";
 import PostCreate from "./pages/PostCreate";
 import PostUpdate from "./pages/PostUpdate";
+import Profile from "./pages/Profile";
+import ProfileUpdate from "./pages/ProfileUpdate";
+import ProfileUpdateLayout from "./components/ProfileUpdateLayout";
 
 const routes = [
   {
@@ -35,6 +38,10 @@ const routes = [
         path: "post/create",
         element: <PostCreate />,
       },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
     ],
   },
   {
@@ -44,6 +51,16 @@ const routes = [
       {
         index: true,
         element: <Login />,
+      },
+    ],
+  },
+  {
+    path: "/profile/update",
+    element: <ProfileUpdateLayout />,
+    children: [
+      {
+        index: true,
+        element: <ProfileUpdate />,
       },
     ],
   },
