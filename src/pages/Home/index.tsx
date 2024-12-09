@@ -193,11 +193,7 @@ function Home() {
   };
 
   const handleRunningPostClick = (postId: number) => {
-    if (!user.userId) {
-      navigate("/login"); // 로그인 안 되어 있으면 로그인 페이지로 리다이렉트
-    } else {
-      navigate(`/post/${postId}`);
-    }
+    navigate(`/post/${postId}`);
   };
 
   const handleNavigate = () => {

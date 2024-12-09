@@ -37,6 +37,7 @@ function Layout() {
   const handleRedirect = (path: string) => {
     navigate(path);
   };
+
   return (
     <>
       <Container>
