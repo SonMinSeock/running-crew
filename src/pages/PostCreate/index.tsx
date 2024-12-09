@@ -15,15 +15,22 @@ import {
   TitleInput,
 } from "../../components/Form";
 import { FormEvent, useState } from "react";
+import { addDoc, collection, updateDoc } from "firebase/firestore";
+import { db, storage } from "../../firebase";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { getDownloadURL, uploadBytes, ref } from "firebase/storage";
+import { useNavigate } from "react-router-dom";
 
 function PostCreate() {
+  const user = useSelector((state: RootState) => state.userSlice);
   const [isDragActive, setIsDragActive] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const navigate = useNavigate();
 
   // const FILE_UPLOAD_SIZE = 1 * 1024 * 1024; // 1MB
-  const MAX_UPLOAD_COUNT = 1; // 최대 파일 업로드 수
 
   const handleClickFileInput = () => {
     const fileInput = document.getElementById("file") as HTMLInputElement;
@@ -43,47 +50,28 @@ function PostCreate() {
     setIsDragActive(false); // 드래그 상태 비활성화
 
     const files = Array.from(event.dataTransfer.files); // 드롭된 파일 가져오기
-    if (files.length > 0) {
-      addFiles([files[0]]); // 단일 파일만 추가
+    if (files.length === 1) {
+      setFile(files[0]); // 단일 파일만 추가
+    } else {
+      alert(`최대 1개의 파일만 업로드 가능합니다.`);
     }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const files = Array.from(event.target.files);
-      if (files.length > 0) {
-        addFiles([files[0]]); // 단일 파일만 추가
+      if (files.length === 1) {
+        setFile(files[0]); // 단일 파일만 추가
+      } else {
+        alert(`최대 1개의 파일만 업로드 가능합니다.`);
       }
     }
   };
 
-  const addFiles = (files: File[]) => {
-    // 이미 업로드된 파일 개수를 확인
-    const remainingSlots = MAX_UPLOAD_COUNT - uploadedFiles.length;
-
-    if (remainingSlots <= 0) {
-      alert(`최대 ${MAX_UPLOAD_COUNT}개의 파일만 업로드 가능합니다.`);
-      return;
-    }
-
-    // 유효한 파일 필터링
-    const validFiles = files.filter((file) => file.type.startsWith("image/"));
-
-    // 업로드 가능한 개수 초과 시 초과 파일 제외
-    const filesToAdd = validFiles.slice(0, remainingSlots);
-
-    if (filesToAdd.length < validFiles.length) {
-      alert(`최대 ${remainingSlots}개의 파일만 더 업로드 가능합니다.`);
-    }
-
-    setUploadedFiles((prevFiles) => [...prevFiles, ...filesToAdd]);
-  };
-
   const handleRemoveFile = (file: File) => {
-    setUploadedFiles((prevFiles) => {
-      const updatedFiles = prevFiles.filter((uploadedFile) => uploadedFile !== file);
-      return updatedFiles;
-    });
+    if (file) {
+      setFile(null);
+    }
   };
 
   const onValid = () => {
@@ -94,7 +82,7 @@ function PostCreate() {
     }
   };
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const isValid = onValid();
 
@@ -102,6 +90,34 @@ function PostCreate() {
       alert("제목 혹은 모집글 작성해야 합니다.");
       return;
     }
+
+    try {
+      const doc = await addDoc(collection(db, "posts"), {
+        userId: user.userId,
+        photoUrl: user.photoUrl,
+        title,
+        description,
+        createdAt: Date.now(),
+      });
+
+      if (file) {
+        const locationRef = ref(storage, `posts/${user.userId}/${doc.id}`);
+        const result = await uploadBytes(locationRef, file);
+        const url = await getDownloadURL(result.ref);
+        await updateDoc(doc, {
+          imgUrl: url,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    setTitle("");
+    setDescription("");
+    setFile(null);
+
+    alert("게시글 생성 성공했습니다.");
+
+    navigate("/");
   };
 
   const onTitleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,7 +156,7 @@ function PostCreate() {
 
       {/* 이미지 미리보기 */}
       <PreviewContainer>
-        {uploadedFiles.map((file) => (
+        {file && (
           <PreviewBox key={file.name}>
             {file.type.startsWith("image/") ? (
               <PreviewImage src={URL.createObjectURL(file)} alt={file.name} />
@@ -149,7 +165,7 @@ function PostCreate() {
             )}
             <RemoveButton onClick={() => handleRemoveFile(file)}>×</RemoveButton>
           </PreviewBox>
-        ))}
+        )}
       </PreviewContainer>
 
       <SubmitBtn>게시</SubmitBtn>

@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface PostState {
   userId: string;
+  photoUrl?: string;
   title: string;
   description: string;
   imgUrl?: string;
