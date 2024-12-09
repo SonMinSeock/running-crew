@@ -6,6 +6,7 @@ import styled, { keyframes } from "styled-components";
 import { userActions } from "../../store/slices/user-slice";
 import { auth } from "../../firebase";
 import { RootState } from "../../store";
+import { Message, RunningPost, RunningPostList, Section, Title } from "../../components/Section/Active";
 
 // 슬라이드 업 애니메이션 정의
 const slideUp = keyframes`
@@ -35,16 +36,6 @@ const LogInOutBtn = styled.button`
   margin-right: 10px;
 `;
 
-const Section = styled.section`
-  margin: 0 20px;
-  margin-bottom: 45px;
-`;
-
-const Title = styled.h1`
-  font-size: 20px;
-  font-weight: bold;
-`;
-
 const RankContainer = styled.div`
   position: relative;
   overflow: hidden;
@@ -60,65 +51,6 @@ const RankList = styled.div`
 
 const RankSpan = styled.span`
   font-size: 18px;
-`;
-
-const Message = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 28px;
-  font-weight: bold;
-  margin-top: 60px;
-`;
-
-const RunningPostList = styled.div`
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 10px;
-  padding-bottom: 80px; /* NavBar 높이만큼 여백 추가 */
-`;
-
-const RunningPost = styled.div`
-  display: flex;
-  gap: 10px;
-  height: 77px;
-
-  & .first-column {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
-    background-color: #ddd;
-    overflow: hidden;
-    & img {
-      width: 100%;
-    }
-  }
-
-  & .second-column {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-  }
-
-  & .username {
-    font-size: 16px;
-    font-weight: bold;
-  }
-
-  & .text {
-    font-size: 14px;
-    color: #555;
-  }
-
-  & .end-date {
-    font-size: 12px;
-    color: #aaa;
-  }
 `;
 
 const TOP_10_RUNNING_PLACE = [

@@ -44,7 +44,7 @@ function Layout() {
         <NavBar>
           <IoAdd onClick={() => handleRedirect("/post/create")} />
           <IoHomeSharp onClick={() => handleRedirect("/")} />
-          <CgProfile />
+          <CgProfile onClick={() => handleRedirect("/profile")} />
         </NavBar>
       </Container>
     </>
