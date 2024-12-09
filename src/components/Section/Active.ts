@@ -34,6 +34,7 @@ export const RunningPost = styled.div`
   display: flex;
   gap: 10px;
   height: 77px;
+  align-items: center;
 
   & .first-column {
     width: 50px;

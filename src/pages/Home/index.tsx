@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth"; // Firebase 인증 관련 함수
+import { getAuth, onAuthStateChanged, signOut, Unsubscribe } from "firebase/auth"; // Firebase 인증 관련 함수
 import styled, { keyframes } from "styled-components";
 import { userActions } from "../../store/slices/user-slice";
-import { auth } from "../../firebase";
+import { auth, db } from "../../firebase";
 import { RootState } from "../../store";
 import { Message, RunningPost, RunningPostList, Section, Title } from "../../components/Section/Active";
+import { postActions, PostState } from "../../store/slices/post-slice";
+import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 
 // 슬라이드 업 애니메이션 정의
 const slideUp = keyframes`
@@ -66,77 +68,12 @@ const TOP_10_RUNNING_PLACE = [
   { text: "제주 한라산", rank: 10 },
 ];
 
-const RUNNING_CREW_POSTS = [
-  {
-    id: 1,
-    username: "민석",
-    text: "올림픽 공원에서 러닝 하실분~",
-    profileUrl: null,
-    endDate: "2024.11.15",
-  },
-  {
-    id: 2,
-    username: "지수",
-    text: "한강공원에서 러닝 크루 모집합니다!",
-    profileUrl:
-      "https://images.unsplash.com/photo-1532074205216-d0e1f4b87368?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fHVzZXIlMjBwcm9maWxlfGVufDB8fDB8fHww",
-    endDate: "2024.11.18",
-  },
-  {
-    id: 3,
-    username: "유진",
-    text: "송도 센트럴파크 러닝 같이해요~",
-    profileUrl: null,
-    endDate: "2024.11.20",
-  },
-  {
-    id: 4,
-    username: "유진",
-    text: "송도 센트럴파크 러닝 같이해요~",
-    profileUrl: null,
-    endDate: "2024.11.20",
-  },
-  {
-    id: 5,
-    username: "유진",
-    text: "송도 센트럴파크 러닝 같이해요~",
-    profileUrl: null,
-    endDate: "2024.11.20",
-  },
-  {
-    id: 6,
-    username: "유진",
-    text: "송도 센트럴파크 러닝 같이해요~",
-    profileUrl: null,
-    endDate: "2024.11.20",
-  },
-  {
-    id: 7,
-    username: "유진",
-    text: "송도 센트럴파크 러닝 같이해요~",
-    profileUrl: null,
-    endDate: "2024.11.20",
-  },
-  {
-    id: 8,
-    username: "유진",
-    text: "송도 센트럴파크 러닝 같이해요~",
-    profileUrl: null,
-    endDate: "2024.11.20",
-  },
-  {
-    id: 9,
-    username: "유진",
-    text: "송도 센트럴파크 러닝 같이해요~",
-    profileUrl: null,
-    endDate: "2024.11.20",
-  },
-];
-
 function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useSelector((state: RootState) => state.userSlice); // 리덕스에서 로그인 상태 가져오기
+  const { posts } = useSelector((state: RootState) => state.postSlice);
   const [currentList, setCurrentList] = useState(TOP_10_RUNNING_PLACE.slice(0, 5)); // 초반 1~5위 표시
   const [isFirstGroup, setIsFirstGroup] = useState(true); // 현재 표시 중인 그룹 트래킹
 
@@ -174,6 +111,32 @@ function Home() {
     }
   }, [dispatch]);
 
+  useEffect(() => {
+    let unsubscribe: Unsubscribe | null = null;
+
+    const fetchPosts = async () => {
+      const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(25));
+      unsubscribe = await onSnapshot(postsQuery, (snapshot) => {
+        const postsData = snapshot.docs.map((doc) => {
+          const { userId, title, photoUrl, description, imgUrl, username } = doc.data();
+          return { userId, title, photoUrl, description, imgUrl, id: doc.id, username };
+        });
+        dispatch(postActions.setPosts(postsData));
+      });
+    };
+
+    fetchPosts();
+
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      unsubscribe && unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    dispatch(postActions.resetPost());
+  }, [location]);
+
   const handleLogout = () => {
     if (user.provider === "google") {
       const auth = getAuth(); // Firebase 인증 객체 가져오기
@@ -192,7 +155,8 @@ function Home() {
     alert("로그아웃되었습니다.");
   };
 
-  const handleRunningPostClick = (postId: number) => {
+  const handleRunningPostClick = (postId: string | null, postData: PostState) => {
+    dispatch(postActions.setPost(postData));
     navigate(`/post/${postId}`);
   };
 
@@ -223,24 +187,23 @@ function Home() {
 
       <Section>
         <Title>같이 러닝 해요</Title>
-        {RUNNING_CREW_POSTS.length === 0 ? (
+        {posts.length === 0 ? (
           <Message>생성한 러닝 크루 없습니다.</Message>
         ) : (
           <RunningPostList>
-            {RUNNING_CREW_POSTS.map((post, index) => (
-              <RunningPost key={index} onClick={() => handleRunningPostClick(post.id)}>
+            {posts.map((post) => (
+              <RunningPost key={post.id} onClick={() => handleRunningPostClick(post?.id ?? null, post)}>
                 <div
                   className="first-column"
                   style={{
-                    backgroundImage: post.profileUrl ? `url(${post.profileUrl})` : "none",
+                    backgroundImage: post.photoUrl ? `url(${post.photoUrl})` : "none",
                   }}
                 >
-                  {post.profileUrl && <img src={post.profileUrl} />}
+                  {post.photoUrl && <img src={post.photoUrl} />}
                 </div>
                 <div className="second-column">
                   <span className="username">{post.username}</span>
-                  <span className="text">{post.text}</span>
-                  <span className="end-date">{post.endDate} 까지</span>
+                  <span className="text">{post.title}</span>
                 </div>
               </RunningPost>
             ))}

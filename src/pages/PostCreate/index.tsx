@@ -94,6 +94,7 @@ function PostCreate() {
     try {
       const doc = await addDoc(collection(db, "posts"), {
         userId: user.userId,
+        username: user.userName,
         photoUrl: user.photoUrl,
         title,
         description,

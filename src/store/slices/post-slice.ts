@@ -1,7 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface PostState {
+  id?: string;
   userId: string;
+  username: string;
   photoUrl?: string;
   title: string;
   description: string;
@@ -9,14 +11,30 @@ export interface PostState {
   createdAt?: number;
 }
 
-const initialState: PostState[] = [];
+interface IinitialState {
+  posts: PostState[];
+  post: PostState | null;
+}
+
+const initialState: IinitialState = {
+  posts: [],
+  post: null,
+};
 
 const postSlice = createSlice({
   name: "post",
   initialState,
   reducers: {
+    setPosts(state, action: PayloadAction<PostState[]>) {
+      state.posts = action.payload;
+    },
     setPost(state, action: PayloadAction<PostState>) {
-      state.push(action.payload);
+      state.post = action.payload;
+    },
+    resetPost(state) {
+      if (state.post) {
+        state.post = null;
+      }
     },
   },
 });
