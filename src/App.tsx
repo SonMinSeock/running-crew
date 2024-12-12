@@ -11,6 +11,7 @@ import PostUpdate from "./pages/PostUpdate";
 import Profile from "./pages/Profile";
 import ProfileUpdate from "./pages/ProfileUpdate";
 import ProfileUpdateLayout from "./components/ProfileUpdateLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const routes = [
   {
@@ -30,17 +31,29 @@ const routes = [
           },
           {
             path: "update",
-            element: <PostUpdate />,
+            element: (
+              <ProtectedRoute>
+                <PostUpdate />
+              </ProtectedRoute>
+            ),
           },
         ],
       },
       {
         path: "post/create",
-        element: <PostCreate />,
+        element: (
+          <ProtectedRoute>
+            <PostCreate />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "profile",
-        element: <Profile />,
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
@@ -60,7 +73,11 @@ const routes = [
     children: [
       {
         index: true,
-        element: <ProfileUpdate />,
+        element: (
+          <ProtectedRoute>
+            <ProfileUpdate />
+          </ProtectedRoute>
+        ),
       },
     ],
   },

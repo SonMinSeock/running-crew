@@ -127,9 +127,7 @@ function Login() {
     }
 
     window.Kakao.Auth.login({
-      success: (authObj: any) => {
-        console.log("카카오 로그인 성공:", authObj);
-
+      success: () => {
         // 사용자 정보 요청
         window.Kakao.API.request({
           url: "/v2/user/me",

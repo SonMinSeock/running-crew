@@ -1,35 +1,13 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Message, RunningPost, RunningPostList, Section, Title } from "../../components/Section/Active";
 import { RootState } from "../../store";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-
-const RUNNING_ACTIVE = [
-  {
-    id: 2,
-    username: "민석",
-    text: "한강공원에서 러닝 크루 모집합니다!",
-    profileUrl:
-      "https://images.unsplash.com/photo-1532074205216-d0e1f4b87368?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fHVzZXIlMjBwcm9maWxlfGVufDB8fDB8fHww",
-    endDate: "2024.11.18",
-  },
-  {
-    id: 2,
-    username: "지수",
-    text: "올림픽 공원에서 러닝 크루 모집합니다!",
-    profileUrl:
-      "https://images.unsplash.com/photo-1532074205216-d0e1f4b87368?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fHVzZXIlMjBwcm9maWxlfGVufDB8fDB8fHww",
-    endDate: "2024.11.18",
-  },
-  {
-    id: 3,
-    username: "김수훈",
-    text: "한강공원에서 러닝 크루 같이 할 사람 손들어~",
-    profileUrl:
-      "https://images.unsplash.com/photo-1532074205216-d0e1f4b87368?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fHVzZXIlMjBwcm9maWxlfGVufDB8fDB8fHww",
-    endDate: "2024.11.18",
-  },
-];
+import { useEffect, useState } from "react";
+import { Unsubscribe } from "firebase/auth";
+import { collection, limit, onSnapshot, orderBy, query, where } from "firebase/firestore";
+import { db } from "../../firebase";
+import { postActions, PostState } from "../../store/slices/post-slice";
 
 const ProfileInfoSection = styled(Section)`
   display: flex;
@@ -67,12 +45,43 @@ const ProfileUpdateBtn = styled.button`
 
 function Profile() {
   const user = useSelector((state: RootState) => state.userSlice);
+  const [posts, setPosts] = useState<PostState[]>([]);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleRunningPostClick = (postId: number) => {
+  useEffect(() => {
+    let unsubscribe: Unsubscribe | null = null;
+
+    const fetchPosts = async () => {
+      const postQuery = query(
+        collection(db, "posts"),
+        where("userId", "==", user.userId),
+        orderBy("createdAt", "desc"),
+        limit(25)
+      );
+
+      unsubscribe = await onSnapshot(postQuery, (snapshot) => {
+        const postsData = snapshot.docs.map((doc) => {
+          const { userId, title, photoUrl, description, imgUrl, username, runningDate } = doc.data();
+          return { userId, title, photoUrl, description, imgUrl, id: doc.id, username, runningDate };
+        });
+        setPosts(postsData);
+      });
+    };
+
+    fetchPosts();
+
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      unsubscribe && unsubscribe();
+    };
+  }, []);
+
+  const handleRunningPostClick = (postId: string | null, postData: PostState) => {
     if (!user.userId) {
       navigate("/login"); // 로그인 안 되어 있으면 로그인 페이지로 리다이렉트
     } else {
+      dispatch(postActions.setPost(postData));
       navigate(`/post/${postId}`);
     }
   };
@@ -90,24 +99,24 @@ function Profile() {
       </ProfileInfoSection>
       <Section>
         <Title>러닝 활동</Title>
-        {RUNNING_ACTIVE.length === 0 ? (
+        {posts.length === 0 ? (
           <Message>활동한 러닝 없습니다.</Message>
         ) : (
           <RunningPostList>
-            {RUNNING_ACTIVE.map((post, index) => (
-              <RunningPost key={index} onClick={() => handleRunningPostClick(post.id)}>
+            {posts.map((post) => (
+              <RunningPost key={post.id} onClick={() => handleRunningPostClick(post?.id ?? null, post)}>
                 <div
                   className="first-column"
                   style={{
-                    backgroundImage: post.profileUrl ? `url(${post.profileUrl})` : "none",
+                    backgroundImage: post.photoUrl ? `url(${post.photoUrl})` : "none",
                   }}
                 >
-                  {post.profileUrl && <img src={post.profileUrl} />}
+                  {post.photoUrl && <img src={post.photoUrl} />}
                 </div>
                 <div className="second-column">
                   <span className="username">{post.username}</span>
-                  <span className="text">{post.text}</span>
-                  <span className="end-date">{post.endDate} 까지</span>
+                  <span className="text">{post.title}</span>
+                  <span className="end-date">{post.runningDate} 러닝</span>
                 </div>
               </RunningPost>
             ))}

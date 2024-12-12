@@ -1,5 +1,5 @@
 import { CiImageOn } from "react-icons/ci";
-
+import "react-calendar/dist/Calendar.css"; // 기본 스타일 가져오기
 import {
   AttatchFileInput,
   AttatchFileSection,
@@ -14,14 +14,28 @@ import {
   Textarea,
   TitleInput,
 } from "../../components/Form";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
+import { addDoc, collection, updateDoc } from "firebase/firestore";
+import { db, storage } from "../../firebase";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { getDownloadURL, uploadBytes, ref } from "firebase/storage";
+import { useNavigate } from "react-router-dom";
+import Calendar from "react-calendar";
+import { Value } from "react-calendar/dist/esm/shared/types.js";
+import { CalenderSection, DateButton } from "../../components/Calender";
 
 function PostCreate() {
+  const user = useSelector((state: RootState) => state.userSlice);
   const [isDragActive, setIsDragActive] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // 선택된 날짜
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false); // 캘린더 열림 상태
+  const navigate = useNavigate();
 
-  const FILE_UPLOAD_SIZE = 1 * 1024 * 1024; // 1MB
-  const MAX_UPLOAD_COUNT = 3; // 최대 파일 업로드 수
+  // const FILE_UPLOAD_SIZE = 1 * 1024 * 1024; // 1MB
 
   const handleClickFileInput = () => {
     const fileInput = document.getElementById("file") as HTMLInputElement;
@@ -35,46 +49,127 @@ function PostCreate() {
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault();
   };
+
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault(); // 기본 이벤트 방지
     setIsDragActive(false); // 드래그 상태 비활성화
 
     const files = Array.from(event.dataTransfer.files); // 드롭된 파일 가져오기
-    setUploadedFiles((prevFiles) => [...prevFiles, ...files]); // 상태 업데이트
+    if (files.length === 1) {
+      setFile(files[0]); // 단일 파일만 추가
+    } else {
+      alert(`최대 1개의 파일만 업로드 가능합니다.`);
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const files = Array.from(event.target.files);
-      addFiles(files);
+      if (files.length === 1) {
+        setFile(files[0]); // 단일 파일만 추가
+      } else {
+        alert(`최대 1개의 파일만 업로드 가능합니다.`);
+      }
     }
-  };
-
-  const addFiles = (files: File[]) => {
-    const validFiles = files.filter((file) => file.size <= FILE_UPLOAD_SIZE && file.type.startsWith("image/"));
-
-    if (uploadedFiles.length + validFiles.length > MAX_UPLOAD_COUNT) {
-      alert(`최대 ${MAX_UPLOAD_COUNT}개의 파일만 업로드 가능합니다.`);
-      return;
-    }
-
-    setUploadedFiles((prevFiles) => [...prevFiles, ...validFiles]);
   };
 
   const handleRemoveFile = (file: File) => {
-    setUploadedFiles((prevFiles) => {
-      const updatedFiles = prevFiles.filter((uploadedFile) => uploadedFile !== file);
-      return updatedFiles;
-    });
+    if (file) {
+      setFile(null);
+    }
   };
+
+  const onValid = () => {
+    if (title.trim().length === 0 && description.trim().length === 0) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const isValid = onValid();
+
+    if (!isValid) {
+      alert("제목 혹은 모집글 작성해야 합니다.");
+      return;
+    }
+
+    try {
+      const doc = await addDoc(collection(db, "posts"), {
+        userId: user.userId,
+        username: user.userName,
+        photoUrl: user.photoUrl,
+        title,
+        description,
+        runningDate: selectedDate?.toLocaleDateString(),
+        createdAt: Date.now(),
+      });
+
+      if (file) {
+        const locationRef = ref(storage, `posts/${user.userId}/${doc.id}`);
+        const result = await uploadBytes(locationRef, file);
+        const url = await getDownloadURL(result.ref);
+        await updateDoc(doc, {
+          imgUrl: url,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    setTitle("");
+    setDescription("");
+    setFile(null);
+
+    alert("게시글 생성 성공했습니다.");
+
+    navigate("/");
+  };
+
+  const onTitleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(event.target.value);
+  };
+
+  const onDescriptionInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(event.target.value);
+  };
+
+  const toggleCalendar = () => {
+    setIsCalendarOpen((prev) => !prev); // 캘린더 열고 닫기
+  };
+
+  const handleDateChange = (value: Value) => {
+    if (value instanceof Date) {
+      setSelectedDate(value); // 단일 날짜인 경우 처리
+    }
+  };
+
   return (
-    <Form>
+    <Form onSubmit={onSubmit}>
       <section>
-        <TitleInput placeholder="러닝 모집 제목 작성해 주세요" />
+        <TitleInput placeholder="러닝 모집 제목 작성해 주세요" value={title} onChange={onTitleInputChange} />
       </section>
       <section>
-        <Textarea rows={12} placeholder="러닝 모집글 작성해 주세요" />
+        <Textarea
+          rows={12}
+          placeholder="러닝 모집글 작성해 주세요"
+          value={description}
+          onChange={onDescriptionInputChange}
+        />
       </section>
+      <CalenderSection>
+        <DateButton type="button" onClick={toggleCalendar}>
+          {selectedDate ? `🗓 ${selectedDate.toLocaleDateString()}` : "🗓 러닝 날짜 선택"}
+        </DateButton>
+        {isCalendarOpen && (
+          <Calendar
+            onChange={handleDateChange}
+            value={selectedDate}
+            minDate={new Date()} // 과거 날짜 선택 방지
+          />
+        )}
+      </CalenderSection>
       <AttatchFileSection
         onClick={handleClickFileInput}
         onDragEnter={handleDragStart}
@@ -90,7 +185,7 @@ function PostCreate() {
 
       {/* 이미지 미리보기 */}
       <PreviewContainer>
-        {uploadedFiles.map((file) => (
+        {file && (
           <PreviewBox key={file.name}>
             {file.type.startsWith("image/") ? (
               <PreviewImage src={URL.createObjectURL(file)} alt={file.name} />
@@ -99,7 +194,7 @@ function PostCreate() {
             )}
             <RemoveButton onClick={() => handleRemoveFile(file)}>×</RemoveButton>
           </PreviewBox>
-        ))}
+        )}
       </PreviewContainer>
 
       <SubmitBtn>게시</SubmitBtn>
