@@ -73,7 +73,7 @@ function PostDetail() {
         <PostImageBox>{post?.imgUrl && <PostImage src={post.imgUrl} />}</PostImageBox>
         <PostTitle>{post?.title}</PostTitle>
         <PostText>{post?.description}</PostText>
-        <PostDate>2024.11.21.목</PostDate>
+        <PostDate>{post?.runningDate} 날에 러닝 합니다</PostDate>
         <ButtonContainer>
           {isOwner ? <Btn onClick={handlerRedirect}>수정 하기</Btn> : <Btn>참여 하기</Btn>}
         </ButtonContainer>

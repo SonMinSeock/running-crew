@@ -118,8 +118,8 @@ function Home() {
       const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(25));
       unsubscribe = await onSnapshot(postsQuery, (snapshot) => {
         const postsData = snapshot.docs.map((doc) => {
-          const { userId, title, photoUrl, description, imgUrl, username } = doc.data();
-          return { userId, title, photoUrl, description, imgUrl, id: doc.id, username };
+          const { userId, title, photoUrl, description, imgUrl, username, runningDate } = doc.data();
+          return { userId, title, photoUrl, description, imgUrl, id: doc.id, username, runningDate };
         });
         dispatch(postActions.setPosts(postsData));
       });
@@ -204,6 +204,7 @@ function Home() {
                 <div className="second-column">
                   <span className="username">{post.username}</span>
                   <span className="text">{post.title}</span>
+                  <span className="end-date">{post.runningDate} 날 러닝</span>
                 </div>
               </RunningPost>
             ))}

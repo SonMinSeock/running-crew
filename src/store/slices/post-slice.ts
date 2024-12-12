@@ -7,6 +7,7 @@ export interface PostState {
   photoUrl?: string;
   title: string;
   description: string;
+  runningDate: string;
   imgUrl?: string;
   createdAt?: number;
 }

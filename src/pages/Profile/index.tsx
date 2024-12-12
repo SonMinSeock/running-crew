@@ -62,8 +62,8 @@ function Profile() {
 
       unsubscribe = await onSnapshot(postQuery, (snapshot) => {
         const postsData = snapshot.docs.map((doc) => {
-          const { userId, title, photoUrl, description, imgUrl, username } = doc.data();
-          return { userId, title, photoUrl, description, imgUrl, id: doc.id, username };
+          const { userId, title, photoUrl, description, imgUrl, username, runningDate } = doc.data();
+          return { userId, title, photoUrl, description, imgUrl, id: doc.id, username, runningDate };
         });
         setPosts(postsData);
       });
@@ -116,7 +116,7 @@ function Profile() {
                 <div className="second-column">
                   <span className="username">{post.username}</span>
                   <span className="text">{post.title}</span>
-                  <span className="end-date">2024.12.11 까지</span>
+                  <span className="end-date">{post.runningDate} 러닝</span>
                 </div>
               </RunningPost>
             ))}

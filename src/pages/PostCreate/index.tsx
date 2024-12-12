@@ -1,5 +1,5 @@
 import { CiImageOn } from "react-icons/ci";
-
+import "react-calendar/dist/Calendar.css"; // 기본 스타일 가져오기
 import {
   AttatchFileInput,
   AttatchFileSection,
@@ -21,6 +21,9 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { getDownloadURL, uploadBytes, ref } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
+import Calendar from "react-calendar";
+import { Value } from "react-calendar/dist/esm/shared/types.js";
+import { CalenderSection, DateButton } from "../../components/Calender";
 
 function PostCreate() {
   const user = useSelector((state: RootState) => state.userSlice);
@@ -28,6 +31,8 @@ function PostCreate() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // 선택된 날짜
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false); // 캘린더 열림 상태
   const navigate = useNavigate();
 
   // const FILE_UPLOAD_SIZE = 1 * 1024 * 1024; // 1MB
@@ -98,6 +103,7 @@ function PostCreate() {
         photoUrl: user.photoUrl,
         title,
         description,
+        runningDate: selectedDate?.toLocaleDateString(),
         createdAt: Date.now(),
       });
 
@@ -129,6 +135,16 @@ function PostCreate() {
     setDescription(event.target.value);
   };
 
+  const toggleCalendar = () => {
+    setIsCalendarOpen((prev) => !prev); // 캘린더 열고 닫기
+  };
+
+  const handleDateChange = (value: Value) => {
+    if (value instanceof Date) {
+      setSelectedDate(value); // 단일 날짜인 경우 처리
+    }
+  };
+
   return (
     <Form onSubmit={onSubmit}>
       <section>
@@ -142,6 +158,18 @@ function PostCreate() {
           onChange={onDescriptionInputChange}
         />
       </section>
+      <CalenderSection>
+        <DateButton type="button" onClick={toggleCalendar}>
+          {selectedDate ? `🗓 ${selectedDate.toLocaleDateString()}` : "🗓 러닝 날짜 선택"}
+        </DateButton>
+        {isCalendarOpen && (
+          <Calendar
+            onChange={handleDateChange}
+            value={selectedDate}
+            minDate={new Date()} // 과거 날짜 선택 방지
+          />
+        )}
+      </CalenderSection>
       <AttatchFileSection
         onClick={handleClickFileInput}
         onDragEnter={handleDragStart}

@@ -1,3 +1,4 @@
+import "react-calendar/dist/Calendar.css"; // 기본 스타일 가져오기
 import { CiImageOn } from "react-icons/ci";
 import {
   AttatchFileInput,
@@ -20,6 +21,9 @@ import { updateDoc, doc } from "firebase/firestore";
 import { db, storage } from "../../firebase";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
+import Calendar from "react-calendar";
+import { Value } from "react-calendar/dist/esm/shared/types.js";
+import { CalenderSection, DateButton } from "../../components/Calender";
 
 function PostUpdate() {
   const user = useSelector((state: RootState) => state.userSlice);
@@ -29,6 +33,9 @@ function PostUpdate() {
   const [title, setTitle] = useState(post?.title);
   const [description, setDescription] = useState(post?.description);
   const [imgUrl, setImgUrl] = useState<string | null>(post?.imgUrl ?? null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // 선택된 날짜
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false); // 캘린더 열림 상태
+
   const navigate = useNavigate();
 
   const handleClickFileInput = () => {
@@ -78,7 +85,7 @@ function PostUpdate() {
   };
 
   const onValid = () => {
-    if (title?.trim().length === 0 && description?.trim().length === 0) {
+    if (title?.trim().length === 0 && description?.trim().length === 0 && selectedDate) {
       return false;
     } else {
       return true;
@@ -88,30 +95,30 @@ function PostUpdate() {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const isValid = onValid();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updates: { [key: string]: any } = {};
 
     if (!isValid) {
-      alert("제목 혹은 모집글 작성해야 합니다.");
+      alert("제목, 모집글, 러닝 할 날짜를 작성해야 합니다.");
       return;
     }
 
     try {
       const docRef = doc(db, "posts", post?.id ?? "");
       if (title !== post?.title) {
-        await updateDoc(docRef, {
-          title,
-        });
-      }
-      if (description !== post?.description) {
-        await updateDoc(docRef, {
-          description,
-        });
+        updates.title = title;
       }
 
-      if (title !== post?.title || description !== post?.description) {
-        await updateDoc(docRef, {
-          title,
-          description,
-        });
+      if (description !== post?.description) {
+        updates.description = description;
+      }
+
+      if (selectedDate && selectedDate.toLocaleDateString() !== post?.runningDate) {
+        updates.runningDate = selectedDate.toLocaleDateString();
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await updateDoc(docRef, updates);
       }
 
       if (file) {
@@ -124,13 +131,6 @@ function PostUpdate() {
         const url = await getDownloadURL(result.ref);
         await updateDoc(docRef, {
           imgUrl: url,
-        });
-      } else {
-        const locationRef = ref(storage, `posts/${user.userId}/${post?.id}`);
-
-        await deleteObject(locationRef);
-        await updateDoc(docRef, {
-          imgUrl: null,
         });
       }
     } catch (error) {
@@ -153,6 +153,16 @@ function PostUpdate() {
     setDescription(event.target.value);
   };
 
+  const toggleCalendar = () => {
+    setIsCalendarOpen((prev) => !prev); // 캘린더 열고 닫기
+  };
+
+  const handleDateChange = (value: Value) => {
+    if (value instanceof Date) {
+      setSelectedDate(value); // 단일 날짜인 경우 처리
+    }
+  };
+
   return (
     <Form onSubmit={onSubmit}>
       <section>
@@ -166,6 +176,22 @@ function PostUpdate() {
           onChange={onDescriptionInputChange}
         />
       </section>
+      <CalenderSection>
+        <DateButton type="button" onClick={toggleCalendar}>
+          {selectedDate
+            ? `🗓 ${selectedDate.toLocaleDateString()}`
+            : post?.runningDate
+            ? `🗓 ${post.runningDate}`
+            : "🗓 러닝 날짜 선택"}
+        </DateButton>
+        {isCalendarOpen && (
+          <Calendar
+            onChange={handleDateChange}
+            value={selectedDate || (post?.runningDate ? new Date(post?.runningDate) : null)}
+            minDate={new Date()} // 과거 날짜 선택 방지
+          />
+        )}
+      </CalenderSection>
       <AttatchFileSection
         onClick={handleClickFileInput}
         onDragEnter={handleDragStart}
