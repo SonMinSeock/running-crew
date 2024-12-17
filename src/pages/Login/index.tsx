@@ -5,11 +5,12 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../../firebase";
+import { auth, db, googleProvider } from "../../firebase";
 import logo from "../../../public/logo.png";
 import styled from "styled-components";
-import { userActions } from "../../store/slices/user-slice";
+import { userActions, UserState } from "../../store/slices/user-slice";
 import { initializeKakao } from "../../kakao";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const Header = styled.header`
   display: flex;
@@ -120,6 +121,18 @@ function Login() {
     initializeKakao();
   }, []);
 
+  // 카카오 가입한 유저 유무 확인
+  const getUser = async (userId: number) => {
+    const userDoc = await getDoc(doc(db, "users", String(userId)));
+    const userData = userDoc.data() as UserState;
+
+    if (userData) {
+      return userData;
+    }
+
+    return false;
+  };
+
   const handleKakaoLogin = (): void => {
     if (!window.Kakao) {
       console.error("Kakao SDK가 로드되지 않았습니다.");
@@ -127,7 +140,7 @@ function Login() {
     }
 
     window.Kakao.Auth.login({
-      success: () => {
+      success: async () => {
         // 사용자 정보 요청
         window.Kakao.API.request({
           url: "/v2/user/me",
@@ -136,18 +149,31 @@ function Login() {
             const nickname = kakao_account.profile.nickname;
             const profileImageUrl = kakao_account.profile.profile_image_url;
 
-            // 리덕스 상태에 저장
-            dispatch(
-              userActions.setUser({
+            const userData = await getUser(id);
+
+            if (userData) {
+              dispatch(
+                userActions.setUser({
+                  ...userData,
+                })
+              );
+
+              navigate("/");
+            } else {
+              // 리덕스 상태에 저장
+              const user: UserState = {
                 userId: String(id),
                 userName: nickname,
                 photoUrl: profileImageUrl,
                 provider: "kakao",
-              })
-            );
+              };
 
-            // 홈 페이지로 리다이렉트
-            navigate("/");
+              await setDoc(doc(db, "users", String(id)), user);
+
+              dispatch(userActions.setUser(user));
+              // 홈 페이지로 리다이렉트
+              navigate("/");
+            }
           },
           fail: (error: any) => {
             console.error("사용자 정보 요청 실패:", error);
