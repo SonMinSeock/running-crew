@@ -136,6 +136,10 @@ function PostDetail() {
   };
 
   const handleParticipant = async () => {
+    if (!user.userId) {
+      navigate("/login");
+      return;
+    }
     if (!post) return;
     if (post.participantList.length === 5) return;
 
