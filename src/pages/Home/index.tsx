@@ -33,7 +33,7 @@ const LogInOutBtn = styled.button`
   font-size: 18px;
   padding: 0;
   &:hover {
-    border-bottom: 1px solid black;
+    box-shadow: inset 0 -1px 0 black; /* hover 시 box-shadow로 밑줄 효과 추가, 호버 상일때 밑으로 미는 현상을 해결 방법 */
   }
   margin-right: 10px;
 `;
