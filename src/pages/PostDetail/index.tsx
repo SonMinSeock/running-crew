@@ -1,7 +1,10 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { RootState } from "../../store";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../firebase";
+import { postActions } from "../../store/slices/post-slice";
 
 const Post = styled.div`
   margin: auto;
@@ -43,6 +46,7 @@ const PostDate = styled.span`
 
 const ButtonContainer = styled.section`
   display: flex;
+  gap: 10px;
 `;
 
 const Btn = styled.button`
@@ -53,19 +57,87 @@ const Btn = styled.button`
   width: 80px;
   padding: 8px 0;
   cursor: pointer;
+  &.running-btn {
+    background-color: #ff9505;
+    color: #fff;
+  }
+  &:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+  }
+`;
+
+const ParticipantCount = styled.span`
+  font-size: 14px;
+  font-weight: bold;
+  color: #555;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  display: block; /* 줄바꿈 */
+`;
+
+const ParticipantList = styled.div`
+  display: flex;
+  gap: 10px;
+  overflow-x: auto; /* 가로 스크롤 */
+`;
+
+const ProfileImage = styled.img`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%; /* 원형 이미지 */
+  object-fit: cover; /* 이미지 비율 유지 */
+  border: 2px solid #ddd; /* 테두리 추가 */
 `;
 
 function PostDetail() {
   const { id } = useParams();
   const user = useSelector((state: RootState) => state.userSlice);
   const { post } = useSelector((state: RootState) => state.postSlice);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const isOwner = user.userId === post?.userId;
 
   const handlerRedirect = () => {
     navigate(`/post/${id}/update`);
   };
 
-  const isOwner = user.userId === post?.userId;
+  const startRunning = async () => {
+    if (!post) return;
+
+    const docRef = doc(db, "posts", post.id);
+
+    if (!post.isRunning) {
+      dispatch(
+        postActions.setPost({
+          ...post,
+          isRunning: true,
+        })
+      );
+      await updateDoc(docRef, {
+        isRunning: true,
+      });
+    }
+  };
+
+  const handleParticipant = async () => {
+    if (!post) return;
+    if (post.participantList.length === 5) return;
+
+    try {
+      const docRef = doc(db, "posts", post.id);
+
+      await updateDoc(docRef, {
+        participantList: [...post.participantList, user],
+      });
+
+      alert("참여 했습니다.");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <>
@@ -75,8 +147,36 @@ function PostDetail() {
         <PostText>{post?.description}</PostText>
         <PostDate>{post?.runningDate} 날에 러닝 합니다</PostDate>
         <ButtonContainer>
-          {isOwner ? <Btn onClick={handlerRedirect}>수정 하기</Btn> : <Btn>참여 하기</Btn>}
+          {isOwner ? (
+            <>
+              <Btn onClick={handlerRedirect}>수정 하기</Btn>{" "}
+              {!post.isRunning && (
+                <Btn className="running-btn" onClick={startRunning}>
+                  러닝 하기
+                </Btn>
+              )}
+            </>
+          ) : (
+            <Btn onClick={handleParticipant} disabled={post?.participantList.length === 5}>
+              {post?.participantList.length === 5 ? "참여 마감" : "참여 하기"}
+            </Btn>
+          )}
         </ButtonContainer>
+        {post?.participantList && (
+          <>
+            <ParticipantCount>참여자 {post.participantList.length}명</ParticipantCount>
+            <ParticipantList>
+              {post.participantList.map((participant) => (
+                <ProfileImage
+                  key={participant.userId}
+                  src={participant.photoUrl}
+                  alt="참가자 프로필 이미지"
+                  title={participant.userName}
+                />
+              ))}
+            </ParticipantList>
+          </>
+        )}
       </Post>
     </>
   );

@@ -118,8 +118,20 @@ function Home() {
       const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(25));
       unsubscribe = await onSnapshot(postsQuery, (snapshot) => {
         const postsData = snapshot.docs.map((doc) => {
-          const { userId, title, photoUrl, description, imgUrl, username, runningDate } = doc.data();
-          return { userId, title, photoUrl, description, imgUrl, id: doc.id, username, runningDate };
+          const { userId, title, photoUrl, description, imgUrl, username, runningDate, isRunning, participantList } =
+            doc.data();
+          return {
+            userId,
+            title,
+            photoUrl,
+            description,
+            imgUrl,
+            id: doc.id,
+            username,
+            runningDate,
+            isRunning,
+            participantList,
+          };
         });
         dispatch(postActions.setPosts(postsData));
       });
@@ -191,23 +203,27 @@ function Home() {
           <Message>생성한 러닝 크루 없습니다.</Message>
         ) : (
           <RunningPostList>
-            {posts.map((post) => (
-              <RunningPost key={post.id} onClick={() => handleRunningPostClick(post?.id ?? null, post)}>
-                <div
-                  className="first-column"
-                  style={{
-                    backgroundImage: post.photoUrl ? `url(${post.photoUrl})` : "none",
-                  }}
-                >
-                  {post.photoUrl && <img src={post.photoUrl} />}
-                </div>
-                <div className="second-column">
-                  <span className="username">{post.username}</span>
-                  <span className="text">{post.title}</span>
-                  <span className="end-date">{post.runningDate} 날 러닝</span>
-                </div>
-              </RunningPost>
-            ))}
+            {posts.map((post) => {
+              if (!post.isRunning) {
+                return (
+                  <RunningPost key={post.id} onClick={() => handleRunningPostClick(post?.id ?? null, post)}>
+                    <div
+                      className="first-column"
+                      style={{
+                        backgroundImage: post.photoUrl ? `url(${post.photoUrl})` : "none",
+                      }}
+                    >
+                      {post.photoUrl && <img src={post.photoUrl} />}
+                    </div>
+                    <div className="second-column">
+                      <span className="username">{post.username}</span>
+                      <span className="text">{post.title}</span>
+                      <span className="end-date">{post.runningDate} 날 러닝</span>
+                    </div>
+                  </RunningPost>
+                );
+              }
+            })}
           </RunningPostList>
         )}
       </Section>

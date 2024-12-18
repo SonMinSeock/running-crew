@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { UserState } from "./user-slice";
 
 export interface PostState {
   id?: string;
@@ -10,6 +11,8 @@ export interface PostState {
   runningDate: string;
   imgUrl?: string;
   createdAt?: number;
+  participantList: UserState[]; // 참여자 리스트 5명까지 참여가능
+  isRunning: boolean;
 }
 
 interface IinitialState {

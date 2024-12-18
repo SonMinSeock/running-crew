@@ -104,6 +104,8 @@ function PostCreate() {
         title,
         description,
         runningDate: selectedDate?.toLocaleDateString(),
+        participantList: [],
+        isRunning: false,
         createdAt: Date.now(),
       });
 
