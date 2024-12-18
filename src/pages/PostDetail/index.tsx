@@ -5,6 +5,7 @@ import { RootState } from "../../store";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import { postActions } from "../../store/slices/post-slice";
+import { useEffect } from "react";
 
 const Post = styled.div`
   margin: auto;
@@ -100,6 +101,12 @@ function PostDetail() {
 
   const isOwner = user.userId === post?.userId;
 
+  useEffect(() => {
+    if (!post) {
+      navigate("/");
+    }
+  }, [post, navigate]);
+
   const handlerRedirect = () => {
     navigate(`/post/${id}/update`);
   };
@@ -107,18 +114,24 @@ function PostDetail() {
   const startRunning = async () => {
     if (!post) return;
 
-    const docRef = doc(db, "posts", post.id);
+    try {
+      const docRef = doc(db, "posts", post.id ?? "");
 
-    if (!post.isRunning) {
-      dispatch(
-        postActions.setPost({
-          ...post,
+      if (!post.isRunning) {
+        dispatch(
+          postActions.setPost({
+            ...post,
+            isRunning: true,
+          })
+        );
+        await updateDoc(docRef, {
           isRunning: true,
-        })
-      );
-      await updateDoc(docRef, {
-        isRunning: true,
-      });
+        });
+
+        alert("러닝 하겠습니다.");
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -126,8 +139,15 @@ function PostDetail() {
     if (!post) return;
     if (post.participantList.length === 5) return;
 
+    for (const participant of post.participantList) {
+      if (participant.userId === user.userId) {
+        alert("이미 참여 했습니다");
+        return;
+      }
+    }
+
     try {
-      const docRef = doc(db, "posts", post.id);
+      const docRef = doc(db, "posts", post.id ?? "");
 
       await updateDoc(docRef, {
         participantList: [...post.participantList, user],
@@ -135,7 +155,7 @@ function PostDetail() {
 
       alert("참여 했습니다.");
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
