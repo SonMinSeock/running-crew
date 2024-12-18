@@ -190,7 +190,13 @@ function Home() {
           <RankList key={isFirstGroup ? "group1" : "group2"}>
             {currentList.map((place) => (
               <RankSpan key={place.text}>
-                {place.rank}. {place.text}
+                {place.rank === 1
+                  ? `🥇 ${place.text}`
+                  : place.rank === 2
+                  ? `🥈 ${place.text}`
+                  : place.rank === 3
+                  ? `🥉 ${place.text}`
+                  : `${place.rank}. ${place.text}`}
               </RankSpan>
             ))}
           </RankList>
