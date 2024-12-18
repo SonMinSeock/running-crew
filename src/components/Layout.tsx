@@ -29,11 +29,20 @@ const NavBar = styled.footer`
   & svg {
     font-size: 25px;
     cursor: pointer;
+    &.hover-color {
+      color: #ff9505;
+    }
+
+    &:hover {
+      color: #ff9505;
+    }
   }
 `;
 
 function Layout() {
   const navigate = useNavigate();
+  const currentPath = window.location.pathname;
+
   const handleRedirect = (path: string) => {
     navigate(path);
   };
@@ -43,9 +52,15 @@ function Layout() {
       <Container>
         <Outlet />
         <NavBar>
-          <IoAdd onClick={() => handleRedirect("/post/create")} />
-          <IoHomeSharp onClick={() => handleRedirect("/")} />
-          <CgProfile onClick={() => handleRedirect("/profile")} />
+          <IoAdd
+            onClick={() => handleRedirect("/post/create")}
+            className={currentPath === "/post/create" ? "hover-color" : ""}
+          />
+          <IoHomeSharp onClick={() => handleRedirect("/")} className={currentPath === "/" ? "hover-color" : ""} />
+          <CgProfile
+            onClick={() => handleRedirect("/profile")}
+            className={currentPath === "/profile" ? "hover-color" : ""}
+          />
         </NavBar>
       </Container>
     </>
