@@ -35,15 +35,19 @@ export const RunningPost = styled.div`
   gap: 10px;
   height: 77px;
   align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* 부드러운 확대 효과 */
 
   & .first-column {
     width: 50px;
     height: 50px;
     border-radius: 8px;
     background-color: #ddd;
-    overflow: hidden;
+
     & img {
       width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
   }
 
@@ -67,5 +71,12 @@ export const RunningPost = styled.div`
   & .end-date {
     font-size: 12px;
     color: #aaa;
+  }
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* 연한 회색 배경 */
+    transform: scale(1.02); /* 부드러운 확대 */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 그림자 효과 추가 */
+    cursor: pointer;
   }
 `;

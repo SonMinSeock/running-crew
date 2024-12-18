@@ -2,12 +2,23 @@ import { useDispatch, useSelector } from "react-redux";
 import { Message, RunningPost, RunningPostList, Section, Title } from "../../components/Section/Active";
 import { RootState } from "../../store";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useEffect, useState } from "react";
 import { Unsubscribe } from "firebase/auth";
 import { collection, limit, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { db } from "../../firebase";
 import { postActions, PostState } from "../../store/slices/post-slice";
+
+const slideIn = keyframes`
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+`;
 
 const ProfileInfoSection = styled(Section)`
   display: flex;
@@ -41,6 +52,7 @@ const ProfileUpdateBtn = styled.button`
   border-radius: 20px;
   border: 2px solid rgba(0, 0, 0, 0.2);
   cursor: pointer;
+  animation: ${slideIn} 0.5s ease-out;
 `;
 
 function Profile() {
@@ -62,8 +74,20 @@ function Profile() {
 
       unsubscribe = await onSnapshot(postQuery, (snapshot) => {
         const postsData = snapshot.docs.map((doc) => {
-          const { userId, title, photoUrl, description, imgUrl, username, runningDate } = doc.data();
-          return { userId, title, photoUrl, description, imgUrl, id: doc.id, username, runningDate };
+          const { userId, title, photoUrl, description, imgUrl, username, runningDate, isRunning, participantList } =
+            doc.data();
+          return {
+            userId,
+            title,
+            photoUrl,
+            description,
+            imgUrl,
+            id: doc.id,
+            username,
+            runningDate,
+            participantList,
+            isRunning,
+          };
         });
         setPosts(postsData);
       });
