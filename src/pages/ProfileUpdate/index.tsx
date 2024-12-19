@@ -9,6 +9,7 @@ import { collection, doc, updateDoc, getDocs, query, where, writeBatch } from "f
 import { auth, db } from "../../firebase";
 import { updateProfile } from "firebase/auth";
 import { userActions } from "../../store/slices/user-slice";
+import { Helmet } from "react-helmet";
 
 const Header = styled.header`
   display: flex;
@@ -122,6 +123,9 @@ function ProfileUpdate() {
 
   return (
     <>
+      <Helmet>
+        <title>Running Crew - 프로필 수정</title>
+      </Helmet>
       <Header>
         <span onClick={() => redirect("/profile")}>취소</span>
         <span onClick={onClick}>저장</span>

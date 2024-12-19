@@ -9,6 +9,7 @@ import { RootState } from "../../store";
 import { Message, RunningPost, RunningPostList, Section, Title } from "../../components/Section/Active";
 import { postActions, PostState } from "../../store/slices/post-slice";
 import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
+import { Helmet } from "react-helmet";
 
 // 슬라이드 업 애니메이션 정의
 const slideUp = keyframes`
@@ -177,6 +178,9 @@ function Home() {
   };
   return (
     <>
+      <Helmet>
+        <title>Running Crew - 홈</title>
+      </Helmet>
       <Hader>
         {user.userId ? (
           <LogInOutBtn onClick={handleLogout}>로그아웃</LogInOutBtn>

@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import ProfileUpdate from "./pages/ProfileUpdate";
 import ProfileUpdateLayout from "./components/ProfileUpdateLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Helmet } from "react-helmet";
 
 const routes = [
   {
@@ -108,6 +109,14 @@ const GlobalStyle = createGlobalStyle`
 function App() {
   return (
     <>
+      <Helmet>
+        <meta
+          name="description"
+          content="러닝 크루는 공동 달리기 세션을 위한 플랫폼으로, 그룹 생성 및 달리기 계획, 추천 달리기 장소 탐색, 활동 기록 및 공유 기능을 제공합니다."
+        />
+        <meta property="og:image" content="" />
+        <meta property="og:url" content="" />
+      </Helmet>
       <GlobalStyle />
       <RouterProvider router={router} />
     </>

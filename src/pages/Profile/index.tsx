@@ -8,6 +8,7 @@ import { Unsubscribe } from "firebase/auth";
 import { collection, limit, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { db } from "../../firebase";
 import { postActions, PostState } from "../../store/slices/post-slice";
+import { Helmet } from "react-helmet";
 
 const slideIn = keyframes`
   from {
@@ -116,6 +117,9 @@ function Profile() {
 
   return (
     <>
+      <Helmet>
+        <title>Running Crew - 프로필</title>
+      </Helmet>
       <ProfileInfoSection>
         <ProfileImgContainer>{user.photoUrl && <img src={user.photoUrl} alt="프로필 이미지" />}</ProfileImgContainer>
         <NameSpan>{user.userName}</NameSpan>

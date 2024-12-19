@@ -6,6 +6,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import { postActions } from "../../store/slices/post-slice";
 import { useEffect } from "react";
+import { Helmet } from "react-helmet";
 
 const Post = styled.div`
   margin: auto;
@@ -165,6 +166,9 @@ function PostDetail() {
 
   return (
     <>
+      <Helmet>
+        <title>Running Crew - {`${post?.title}`}</title>
+      </Helmet>
       <Post>
         <PostImageBox>{post?.imgUrl && <PostImage src={post.imgUrl} />}</PostImageBox>
         <PostTitle>{post?.title}</PostTitle>

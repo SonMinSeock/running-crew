@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import { Value } from "react-calendar/dist/esm/shared/types.js";
 import { CalenderSection, DateButton } from "../../components/Calender";
+import { Helmet } from "react-helmet";
 
 function PostCreate() {
   const user = useSelector((state: RootState) => state.userSlice);
@@ -148,59 +149,64 @@ function PostCreate() {
   };
 
   return (
-    <Form onSubmit={onSubmit}>
-      <section>
-        <TitleInput placeholder="러닝 모집 제목 작성해 주세요" value={title} onChange={onTitleInputChange} />
-      </section>
-      <section>
-        <Textarea
-          rows={12}
-          placeholder="러닝 모집글 작성해 주세요"
-          value={description}
-          onChange={onDescriptionInputChange}
-        />
-      </section>
-      <CalenderSection>
-        <DateButton type="button" onClick={toggleCalendar}>
-          {selectedDate ? `🗓 ${selectedDate.toLocaleDateString()}` : "🗓 러닝 날짜 선택"}
-        </DateButton>
-        {isCalendarOpen && (
-          <Calendar
-            onChange={handleDateChange}
-            value={selectedDate}
-            minDate={new Date()} // 과거 날짜 선택 방지
+    <>
+      <Helmet>
+        <title>Running Crew - 게시글 생성</title>
+      </Helmet>
+      <Form onSubmit={onSubmit}>
+        <section>
+          <TitleInput placeholder="러닝 모집 제목 작성해 주세요" value={title} onChange={onTitleInputChange} />
+        </section>
+        <section>
+          <Textarea
+            rows={12}
+            placeholder="러닝 모집글 작성해 주세요"
+            value={description}
+            onChange={onDescriptionInputChange}
           />
-        )}
-      </CalenderSection>
-      <AttatchFileSection
-        onClick={handleClickFileInput}
-        onDragEnter={handleDragStart}
-        onDragLeave={handleDragEnd}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        className={isDragActive ? "isDragActive" : ""}
-      >
-        <CiImageOn />
-        <Span>클릭 또는 드래그 이미지 업로드</Span>
-        <AttatchFileInput id="file" type="file" accept="image/*" onChange={handleFileChange} />
-      </AttatchFileSection>
+        </section>
+        <CalenderSection>
+          <DateButton type="button" onClick={toggleCalendar}>
+            {selectedDate ? `🗓 ${selectedDate.toLocaleDateString()}` : "🗓 러닝 날짜 선택"}
+          </DateButton>
+          {isCalendarOpen && (
+            <Calendar
+              onChange={handleDateChange}
+              value={selectedDate}
+              minDate={new Date()} // 과거 날짜 선택 방지
+            />
+          )}
+        </CalenderSection>
+        <AttatchFileSection
+          onClick={handleClickFileInput}
+          onDragEnter={handleDragStart}
+          onDragLeave={handleDragEnd}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          className={isDragActive ? "isDragActive" : ""}
+        >
+          <CiImageOn />
+          <Span>클릭 또는 드래그 이미지 업로드</Span>
+          <AttatchFileInput id="file" type="file" accept="image/*" onChange={handleFileChange} />
+        </AttatchFileSection>
 
-      {/* 이미지 미리보기 */}
-      <PreviewContainer>
-        {file && (
-          <PreviewBox key={file.name}>
-            {file.type.startsWith("image/") ? (
-              <PreviewImage src={URL.createObjectURL(file)} alt={file.name} />
-            ) : (
-              <PreviewText>{file.name}</PreviewText>
-            )}
-            <RemoveButton onClick={() => handleRemoveFile(file)}>×</RemoveButton>
-          </PreviewBox>
-        )}
-      </PreviewContainer>
+        {/* 이미지 미리보기 */}
+        <PreviewContainer>
+          {file && (
+            <PreviewBox key={file.name}>
+              {file.type.startsWith("image/") ? (
+                <PreviewImage src={URL.createObjectURL(file)} alt={file.name} />
+              ) : (
+                <PreviewText>{file.name}</PreviewText>
+              )}
+              <RemoveButton onClick={() => handleRemoveFile(file)}>×</RemoveButton>
+            </PreviewBox>
+          )}
+        </PreviewContainer>
 
-      <SubmitBtn>게시</SubmitBtn>
-    </Form>
+        <SubmitBtn>게시</SubmitBtn>
+      </Form>
+    </>
   );
 }
 

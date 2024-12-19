@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Helmet } from "react-helmet";
 import { RiKakaoTalkFill } from "react-icons/ri";
 import { FaGoogle } from "react-icons/fa";
 import { useEffect } from "react";
@@ -210,6 +211,9 @@ function Login() {
 
   return (
     <>
+      <Helmet>
+        <title>Running Crew - 로그인</title>
+      </Helmet>
       <Header>
         <Title>러닝 크루</Title>
       </Header>

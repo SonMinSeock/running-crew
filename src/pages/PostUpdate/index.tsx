@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import { Value } from "react-calendar/dist/esm/shared/types.js";
 import { CalenderSection, DateButton } from "../../components/Calender";
+import { Helmet } from "react-helmet";
 
 function PostUpdate() {
   const user = useSelector((state: RootState) => state.userSlice);
@@ -149,71 +150,76 @@ function PostUpdate() {
   };
 
   return (
-    <Form onSubmit={onSubmit}>
-      <section>
-        <TitleInput
-          placeholder="러닝 모집 제목 작성해 주세요"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </section>
-      <section>
-        <Textarea
-          rows={12}
-          placeholder="러닝 모집글 작성해 주세요"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </section>
-      <CalenderSection>
-        <DateButton type="button" onClick={toggleCalendar}>
-          {selectedDate
-            ? `🗓 ${selectedDate.toLocaleDateString()}`
-            : post?.runningDate
-            ? `🗓 ${new Date(post.runningDate.replace(/-/g, "/")).toLocaleDateString()}`
-            : "🗓 러닝 날짜 선택"}
-        </DateButton>
-        {isCalendarOpen && (
-          <Calendar
-            onChange={handleDateChange}
-            value={selectedDate || (post?.runningDate ? new Date(post.runningDate.replace(/-/g, "/")) : null)}
-            minDate={new Date()}
+    <>
+      <Helmet>
+        <title>Running Crew - 게시글 수정페이지</title>
+      </Helmet>
+      <Form onSubmit={onSubmit}>
+        <section>
+          <TitleInput
+            placeholder="러닝 모집 제목 작성해 주세요"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
-        )}
-      </CalenderSection>
-      <AttatchFileSection
-        onClick={handleClickFileInput}
-        onDragEnter={handleDragStart}
-        onDragLeave={handleDragEnd}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        className={isDragActive ? "isDragActive" : ""}
-      >
-        <CiImageOn />
-        <Span>클릭 또는 드래그 이미지 업로드</Span>
-        <AttatchFileInput id="file" type="file" accept="image/*" onChange={handleFileChange} />
-      </AttatchFileSection>
-      <PreviewContainer>
-        {file ? (
-          <PreviewBox key={file.name}>
-            {file.type.startsWith("image/") ? (
-              <PreviewImage src={URL.createObjectURL(file)} alt={file.name} />
-            ) : (
-              <PreviewText>{file.name}</PreviewText>
-            )}
-            <RemoveButton onClick={() => handleRemoveFile(file)}>×</RemoveButton>
-          </PreviewBox>
-        ) : (
-          imgUrl && (
-            <PreviewBox key={imgUrl}>
-              <PreviewImage src={imgUrl} alt="업로드 할 이미지" />
-              <RemoveButton onClick={() => handleRemoveFile()}>×</RemoveButton>
+        </section>
+        <section>
+          <Textarea
+            rows={12}
+            placeholder="러닝 모집글 작성해 주세요"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </section>
+        <CalenderSection>
+          <DateButton type="button" onClick={toggleCalendar}>
+            {selectedDate
+              ? `🗓 ${selectedDate.toLocaleDateString()}`
+              : post?.runningDate
+              ? `🗓 ${new Date(post.runningDate.replace(/-/g, "/")).toLocaleDateString()}`
+              : "🗓 러닝 날짜 선택"}
+          </DateButton>
+          {isCalendarOpen && (
+            <Calendar
+              onChange={handleDateChange}
+              value={selectedDate || (post?.runningDate ? new Date(post.runningDate.replace(/-/g, "/")) : null)}
+              minDate={new Date()}
+            />
+          )}
+        </CalenderSection>
+        <AttatchFileSection
+          onClick={handleClickFileInput}
+          onDragEnter={handleDragStart}
+          onDragLeave={handleDragEnd}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          className={isDragActive ? "isDragActive" : ""}
+        >
+          <CiImageOn />
+          <Span>클릭 또는 드래그 이미지 업로드</Span>
+          <AttatchFileInput id="file" type="file" accept="image/*" onChange={handleFileChange} />
+        </AttatchFileSection>
+        <PreviewContainer>
+          {file ? (
+            <PreviewBox key={file.name}>
+              {file.type.startsWith("image/") ? (
+                <PreviewImage src={URL.createObjectURL(file)} alt={file.name} />
+              ) : (
+                <PreviewText>{file.name}</PreviewText>
+              )}
+              <RemoveButton onClick={() => handleRemoveFile(file)}>×</RemoveButton>
             </PreviewBox>
-          )
-        )}
-      </PreviewContainer>
-      <SubmitBtn>수정</SubmitBtn>
-    </Form>
+          ) : (
+            imgUrl && (
+              <PreviewBox key={imgUrl}>
+                <PreviewImage src={imgUrl} alt="업로드 할 이미지" />
+                <RemoveButton onClick={() => handleRemoveFile()}>×</RemoveButton>
+              </PreviewBox>
+            )
+          )}
+        </PreviewContainer>
+        <SubmitBtn>수정</SubmitBtn>
+      </Form>
+    </>
   );
 }
 
