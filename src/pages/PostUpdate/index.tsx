@@ -181,7 +181,7 @@ function PostUpdate() {
           {selectedDate
             ? `🗓 ${selectedDate.toLocaleDateString()}`
             : post?.runningDate
-            ? `🗓 ${post.runningDate}`
+            ? `🗓 ${new Date(post.runningDate.replace(/-/g, "/")).toLocaleDateString()}`
             : "🗓 러닝 날짜 선택"}
         </DateButton>
         {isCalendarOpen && (
