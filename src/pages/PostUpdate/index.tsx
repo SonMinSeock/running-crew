@@ -187,11 +187,12 @@ function PostUpdate() {
         {isCalendarOpen && (
           <Calendar
             onChange={handleDateChange}
-            value={selectedDate || (post?.runningDate ? new Date(post?.runningDate) : null)}
+            value={selectedDate || (post?.runningDate ? new Date(post.runningDate.replace(/-/g, "/")) : null)}
             minDate={new Date()} // 과거 날짜 선택 방지
           />
         )}
       </CalenderSection>
+
       <AttatchFileSection
         onClick={handleClickFileInput}
         onDragEnter={handleDragStart}
