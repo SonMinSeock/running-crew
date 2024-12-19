@@ -103,9 +103,12 @@ function PostUpdate() {
       if (description !== post?.description) {
         updates.description = description;
       }
-      if (selectedDate && selectedDate.toISOString().split("T")[0] !== post?.runningDate) {
-        updates.runningDate = selectedDate.toISOString().split("T")[0]; // ISO 8601 형식 저장
+
+      if (selectedDate) {
+        const adjustedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+        updates.runningDate = adjustedDate.toISOString().split("T")[0]; // 날짜만 저장
       }
+
       if (Object.keys(updates).length > 0) {
         await updateDoc(docRef, updates);
       }
@@ -123,6 +126,7 @@ function PostUpdate() {
     } catch (error) {
       console.error(error);
     }
+
     setTitle("");
     setDescription("");
     setFile(null);
