@@ -30,34 +30,33 @@ function PostUpdate() {
   const { post } = useSelector((state: RootState) => state.postSlice);
   const [isDragActive, setIsDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState(post?.title);
-  const [description, setDescription] = useState(post?.description);
+  const [title, setTitle] = useState(post?.title || "");
+  const [description, setDescription] = useState(post?.description || "");
   const [imgUrl, setImgUrl] = useState<string | null>(post?.imgUrl ?? null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // 선택된 날짜
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false); // 캘린더 열림 상태
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    post?.runningDate ? new Date(post.runningDate.replace(/-/g, "/")) : null
+  );
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const navigate = useNavigate();
 
   const handleClickFileInput = () => {
     const fileInput = document.getElementById("file") as HTMLInputElement;
     if (fileInput) {
-      fileInput.click(); // 파일 입력 창 열기
+      fileInput.click();
     }
   };
 
   const handleDragStart = () => setIsDragActive(true);
   const handleDragEnd = () => setIsDragActive(false);
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault();
-  };
-
+  const handleDragOver = (event: React.DragEvent) => event.preventDefault();
   const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault(); // 기본 이벤트 방지
-    setIsDragActive(false); // 드래그 상태 비활성화
+    event.preventDefault();
+    setIsDragActive(false);
 
-    const files = Array.from(event.dataTransfer.files); // 드롭된 파일 가져오기
+    const files = Array.from(event.dataTransfer.files);
     if (files.length === 1) {
-      setFile(files[0]); // 단일 파일만 추가
+      setFile(files[0]);
       setImgUrl(null);
     } else {
       alert(`최대 1개의 파일만 업로드 가능합니다.`);
@@ -68,7 +67,7 @@ function PostUpdate() {
     if (event.target.files) {
       const files = Array.from(event.target.files);
       if (files.length === 1) {
-        setFile(files[0]); // 단일 파일만 추가
+        setFile(files[0]);
         setImgUrl(null);
       } else {
         alert(`최대 1개의 파일만 업로드 가능합니다.`);
@@ -84,39 +83,29 @@ function PostUpdate() {
     }
   };
 
-  const onValid = () => {
-    if (title?.trim().length === 0 && description?.trim().length === 0 && selectedDate) {
-      return false;
-    } else {
-      return true;
-    }
-  };
+  const onValid = () => title.trim() && description.trim() && selectedDate;
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const isValid = onValid();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updates: { [key: string]: any } = {};
-
-    if (!isValid) {
+    if (!onValid()) {
       alert("제목, 모집글, 러닝 할 날짜를 작성해야 합니다.");
       return;
     }
 
     try {
       const docRef = doc(db, "posts", post?.id ?? "");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updates: { [key: string]: any } = {};
+
       if (title !== post?.title) {
         updates.title = title;
       }
-
       if (description !== post?.description) {
         updates.description = description;
       }
-
-      if (selectedDate && selectedDate.toLocaleDateString() !== post?.runningDate) {
-        updates.runningDate = selectedDate.toLocaleDateString();
+      if (selectedDate && selectedDate.toISOString().split("T")[0] !== post?.runningDate) {
+        updates.runningDate = selectedDate.toISOString().split("T")[0]; // ISO 8601 형식 저장
       }
-
       if (Object.keys(updates).length > 0) {
         await updateDoc(docRef, updates);
       }
@@ -129,51 +118,42 @@ function PostUpdate() {
 
         const result = await uploadBytes(locationRef, file);
         const url = await getDownloadURL(result.ref);
-        await updateDoc(docRef, {
-          imgUrl: url,
-        });
+        await updateDoc(docRef, { imgUrl: url });
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
     setTitle("");
     setDescription("");
     setFile(null);
 
     alert("게시글 수정 성공했습니다.");
-
     navigate("/");
   };
 
-  const onTitleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(event.target.value);
-  };
-
-  const onDescriptionInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setDescription(event.target.value);
-  };
-
-  const toggleCalendar = () => {
-    setIsCalendarOpen((prev) => !prev); // 캘린더 열고 닫기
-  };
+  const toggleCalendar = () => setIsCalendarOpen((prev) => !prev);
 
   const handleDateChange = (value: Value) => {
     if (value instanceof Date) {
-      setSelectedDate(value); // 단일 날짜인 경우 처리
+      setSelectedDate(value);
     }
   };
 
   return (
     <Form onSubmit={onSubmit}>
       <section>
-        <TitleInput placeholder="러닝 모집 제목 작성해 주세요 수정" value={title} onChange={onTitleInputChange} />
+        <TitleInput
+          placeholder="러닝 모집 제목 작성해 주세요"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
       </section>
       <section>
         <Textarea
           rows={12}
-          placeholder="러닝 모집글 작성해 주세요 수정"
+          placeholder="러닝 모집글 작성해 주세요"
           value={description}
-          onChange={onDescriptionInputChange}
+          onChange={(e) => setDescription(e.target.value)}
         />
       </section>
       <CalenderSection>
@@ -188,11 +168,10 @@ function PostUpdate() {
           <Calendar
             onChange={handleDateChange}
             value={selectedDate || (post?.runningDate ? new Date(post.runningDate.replace(/-/g, "/")) : null)}
-            minDate={new Date()} // 과거 날짜 선택 방지
+            minDate={new Date()}
           />
         )}
       </CalenderSection>
-
       <AttatchFileSection
         onClick={handleClickFileInput}
         onDragEnter={handleDragStart}
@@ -218,13 +197,12 @@ function PostUpdate() {
         ) : (
           imgUrl && (
             <PreviewBox key={imgUrl}>
-              {imgUrl ? <PreviewImage src={imgUrl} alt="업로드 할 이미지" /> : <PreviewText>이미지</PreviewText>}
+              <PreviewImage src={imgUrl} alt="업로드 할 이미지" />
               <RemoveButton onClick={() => handleRemoveFile()}>×</RemoveButton>
             </PreviewBox>
           )
         )}
       </PreviewContainer>
-
       <SubmitBtn>수정</SubmitBtn>
     </Form>
   );
