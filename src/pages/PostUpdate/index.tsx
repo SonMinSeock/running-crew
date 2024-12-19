@@ -104,9 +104,14 @@ function PostUpdate() {
         updates.description = description;
       }
 
+      // selectedDate 처리 부분
       if (selectedDate) {
-        const adjustedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-        updates.runningDate = adjustedDate.toISOString().split("T")[0]; // 날짜만 저장
+        const year = selectedDate.getFullYear();
+        const month = selectedDate.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1 필요
+        const day = selectedDate.getDate();
+
+        // 날짜를 YYYY-MM-DD 형식으로 저장
+        updates.runningDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       }
 
       if (Object.keys(updates).length > 0) {
