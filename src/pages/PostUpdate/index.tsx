@@ -25,6 +25,8 @@ import Calendar from "react-calendar";
 import { Value } from "react-calendar/dist/esm/shared/types.js";
 import { CalenderSection, DateButton } from "../../components/Calender";
 import { Helmet } from "react-helmet";
+import { LoadingContainer } from "../../components/Loading";
+import { BeatLoader } from "react-spinners";
 
 function PostUpdate() {
   const user = useSelector((state: RootState) => state.userSlice);
@@ -38,7 +40,7 @@ function PostUpdate() {
     post?.runningDate ? new Date(post.runningDate.replace(/-/g, "/")) : null
   );
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleClickFileInput = () => {
@@ -88,7 +90,10 @@ function PostUpdate() {
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
+
     if (!onValid()) {
+      setLoading(false);
       alert("제목, 모집글, 러닝 할 날짜를 작성해야 합니다.");
       return;
     }
@@ -137,6 +142,7 @@ function PostUpdate() {
     setDescription("");
     setFile(null);
 
+    setLoading(false);
     alert("게시글 수정 성공했습니다.");
     navigate("/");
   };
@@ -151,6 +157,11 @@ function PostUpdate() {
 
   return (
     <>
+      {loading && (
+        <LoadingContainer>
+          <BeatLoader />
+        </LoadingContainer>
+      )}
       <Helmet>
         <title>Running Crew - 게시글 수정페이지</title>
       </Helmet>

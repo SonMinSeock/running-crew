@@ -25,6 +25,8 @@ import Calendar from "react-calendar";
 import { Value } from "react-calendar/dist/esm/shared/types.js";
 import { CalenderSection, DateButton } from "../../components/Calender";
 import { Helmet } from "react-helmet";
+import { LoadingContainer } from "../../components/Loading";
+import { BeatLoader } from "react-spinners";
 
 function PostCreate() {
   const user = useSelector((state: RootState) => state.userSlice);
@@ -35,7 +37,7 @@ function PostCreate() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null); // 선택된 날짜
   const [isCalendarOpen, setIsCalendarOpen] = useState(false); // 캘린더 열림 상태
   const navigate = useNavigate();
-
+  const [loading, setLoading] = useState(false);
   // const FILE_UPLOAD_SIZE = 1 * 1024 * 1024; // 1MB
 
   const handleClickFileInput = () => {
@@ -90,10 +92,13 @@ function PostCreate() {
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
+
     const isValid = onValid();
 
     if (!isValid) {
       alert("제목 혹은 모집글 작성해야 합니다.");
+      setLoading(false);
       return;
     }
 
@@ -119,12 +124,14 @@ function PostCreate() {
         });
       }
     } catch (error) {
+      setLoading(false);
       console.log(error);
     }
     setTitle("");
     setDescription("");
     setFile(null);
 
+    setLoading(false);
     alert("게시글 생성 성공했습니다.");
 
     navigate("/");
@@ -150,6 +157,11 @@ function PostCreate() {
 
   return (
     <>
+      {loading && (
+        <LoadingContainer>
+          <BeatLoader />
+        </LoadingContainer>
+      )}
       <Helmet>
         <title>Running Crew - 게시글 생성</title>
       </Helmet>

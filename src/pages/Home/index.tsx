@@ -10,6 +10,7 @@ import { Message, RunningPost, RunningPostList, Section, Title } from "../../com
 import { postActions, PostState } from "../../store/slices/post-slice";
 import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 import { Helmet } from "react-helmet";
+import { BeatLoader } from "react-spinners";
 
 // 슬라이드 업 애니메이션 정의
 const slideUp = keyframes`
@@ -77,6 +78,7 @@ function Home() {
   const { posts } = useSelector((state: RootState) => state.postSlice);
   const [currentList, setCurrentList] = useState(TOP_10_RUNNING_PLACE.slice(0, 5)); // 초반 1~5위 표시
   const [isFirstGroup, setIsFirstGroup] = useState(true); // 현재 표시 중인 그룹 트래킹
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -135,6 +137,8 @@ function Home() {
           };
         });
         dispatch(postActions.setPosts(postsData));
+
+        setLoading(false);
       });
     };
 
@@ -209,7 +213,13 @@ function Home() {
 
       <Section>
         <Title>같이 러닝 해요</Title>
-        {posts.length === 0 ? (
+
+        {loading ? (
+          <Message>
+            <span>러닝 게시글 불러오고 있는 중 입니다.</span>
+            <BeatLoader />
+          </Message>
+        ) : posts.length === 0 ? (
           <Message>생성한 러닝 크루 없습니다.</Message>
         ) : (
           <RunningPostList>

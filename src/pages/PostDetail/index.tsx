@@ -5,8 +5,10 @@ import { RootState } from "../../store";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import { postActions } from "../../store/slices/post-slice";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
+import { BeatLoader } from "react-spinners";
+import { LoadingContainer } from "../../components/Loading";
 
 const Post = styled.div`
   margin: auto;
@@ -99,6 +101,7 @@ function PostDetail() {
   const { post } = useSelector((state: RootState) => state.postSlice);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const isOwner = user.userId === post?.userId;
 
@@ -154,10 +157,19 @@ function PostDetail() {
     try {
       const docRef = doc(db, "posts", post.id ?? "");
 
+      setLoading(true);
+
       await updateDoc(docRef, {
         participantList: [...post.participantList, user],
       });
 
+      dispatch(
+        postActions.setPost({
+          ...post,
+          participantList: [...post.participantList, user],
+        })
+      );
+      setLoading(false);
       alert("참여 했습니다.");
     } catch (error) {
       console.error(error);
@@ -166,6 +178,11 @@ function PostDetail() {
 
   return (
     <>
+      {loading && (
+        <LoadingContainer>
+          <BeatLoader />
+        </LoadingContainer>
+      )}
       <Helmet>
         <title>Running Crew - {`${post?.title}`}</title>
       </Helmet>

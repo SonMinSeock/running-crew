@@ -12,11 +12,15 @@ export const Title = styled.h1`
 
 export const Message = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-size: 28px;
+  font-size: 19px;
   font-weight: bold;
   margin-top: 60px;
+  span {
+    margin-top: 1rem;
+  }
 `;
 
 export const RunningPostList = styled.div`

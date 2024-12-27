@@ -10,6 +10,8 @@ import { auth, db } from "../../firebase";
 import { updateProfile } from "firebase/auth";
 import { userActions } from "../../store/slices/user-slice";
 import { Helmet } from "react-helmet";
+import { LoadingContainer } from "../../components/Loading";
+import { BeatLoader } from "react-spinners";
 
 const Header = styled.header`
   display: flex;
@@ -55,6 +57,7 @@ function ProfileUpdate() {
   const [username, setUsername] = useState(user.userName);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(event.currentTarget.value);
@@ -80,7 +83,10 @@ function ProfileUpdate() {
   };
 
   const onClick = async () => {
+    setLoading(true);
+
     if (username.trim().length === 0) {
+      setLoading(false);
       alert("이름을 입력하세요.");
       return;
     }
@@ -113,16 +119,23 @@ function ProfileUpdate() {
         );
       }
 
+      setLoading(false);
       alert("프로필이 성공적으로 수정되었습니다.");
       redirect("/profile");
     } catch (error) {
       console.error("프로필 수정 실패: ", error);
+      setLoading(false);
       alert("프로필 수정에 실패했습니다. 다시 시도해 주세요.");
     }
   };
 
   return (
     <>
+      {loading && (
+        <LoadingContainer>
+          <BeatLoader />
+        </LoadingContainer>
+      )}
       <Helmet>
         <title>Running Crew - 프로필 수정</title>
       </Helmet>
